@@ -412,3 +412,55 @@ header h5 {
   align-items: center;
   justify-content: center;
 }
+
+/* Full-page loading overlay */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000; /* Above modals, etc. */
+  background: radial-gradient(circle at top, #fff7e6 0%, #f2e3ff 40%, #dfdbe5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+#loading-overlay.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#loading-overlay .loading-inner {
+  text-align: center;
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.loading-logo {
+  max-width: 120px;
+  margin-bottom: 0.75rem;
+}
+
+.loading-text {
+  margin: 0;
+  font-family: "Sigmar", system-ui, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #CE0000;
+}
+
+/* Optional subtle pulse on text */
+@keyframes loading-pulse {
+  0%, 100% { opacity: 0.9; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-2px); }
+}
+
+.loading-text {
+  animation: loading-pulse 1.4s ease-in-out infinite;
+}
+
