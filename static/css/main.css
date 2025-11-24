@@ -92,3 +92,242 @@
 .is-invalid {
   border-color: #dc3545 !important;
 }
+
+
+
+/* Colour palette */
+:root {
+  --pizza-bg: #fdf7ec;
+  --pizza-card: #ffffff;
+  --pizza-border: #e0d5c2;
+  --pizza-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  --pizza-red: #CE0000;
+  --pizza-text: #343a40;
+}
+
+/* Main card the game sits in */
+.game-container {
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: var(--pizza-shadow);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+/* Kanban columns as cards */
+.gridcontainer {
+  gap: 12px;
+}
+
+.gridcontainer > div {
+  background: var(--pizza-card);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* Headings inside the Kanban columns */
+.gridcontainer h3,
+.gridcontainer h4,
+.gridcontainer h5 {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.05rem;
+  color: var(--pizza-red);
+}
+
+/* Tiny accent “pill” before each heading */
+.gridcontainer h3::before,
+.gridcontainer h4::before,
+.gridcontainer h5::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffc857, #ff7b00);
+}
+
+/* Ingredient tokens */
+.ingredient {
+  background: #ffffff;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  padding-inline: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    background 0.12s ease-out,
+    border-color 0.12s ease-out;
+}
+
+.ingredient:hover,
+.ingredient.selected {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  background: #fff7e6;
+  border-color: #ffc107;
+}
+
+/* Shared ingredient / pizza areas */
+#prepared-pool,
+#pizza-builder,
+#pizza-builders-container,
+#built-pizzas,
+#oven,
+#completed,
+#wasted {
+  background: #f8f9fb;
+  border-radius: 8px;
+}
+
+/* Primary action buttons */
+.btn-custom,
+#start-round,
+#submit-pizza,
+#oven-on,
+#oven-off {
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Subtle hover lift for all custom buttons */
+.btn-custom:hover,
+#start-round:hover,
+#submit-pizza:hover,
+#oven-on:hover,
+#oven-off:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Timers: subtle glow + clearer label */
+.timer-container.stopwatch,
+.timer-container.oven {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Oven on = stronger glow (you already toggle .oven-active) */
+.timer-container.oven.oven-active {
+  box-shadow: 0 0 16px rgba(255, 102, 102, 0.8);
+}
+
+/* Message panel */
+#messages {
+  border-radius: 6px;
+  background: #050608;
+  border-color: #2f3136;
+  padding: 8px 12px;
+}
+
+#messages .title {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  opacity: 0.8;
+}
+
+#messages .content {
+  margin-top: 4px;
+  color: #8fff8f;
+  font-size: 0.86rem;
+}
+/* Room table rows */
+#room-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#room-table tbody tr {
+  cursor: pointer;
+  transition:
+    background 0.12s ease-out,
+    transform 0.12s ease-out;
+}
+
+#room-table tbody tr:hover {
+  background: #fff8e1;
+  transform: translateY(-1px);
+}
+
+/* Join form inputs */
+#join-form .form-control {
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03) inset;
+}
+
+#join-form .form-control:focus {
+  border-color: #ff7b00;
+  box-shadow: 0 0 0 0.08rem rgba(255, 123, 0, 0.25);
+}
+
+/* Room modal header layout feels a bit more “hero” */
+#roomModal .modal-header {
+  border-bottom: none;
+  align-items: stretch;
+}
+
+#roomModal .modal-title {
+  line-height: 1.2;
+}
+#debriefModal .modal-dialog {
+  max-width: 520px;
+}
+
+#debriefModal .modal-content {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.18);
+}
+
+#debriefModalBody p {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+#debriefModalBody p strong {
+  font-weight: 600;
+  color: #444;
+}
+
+#debriefModalBody p span {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+}
+
+/* Highlight good vs bad */
+#debrief-pizzas-completed,
+#debrief-fulfilled-orders {
+  color: #198754;
+}
+
+#debrief-pizzas-wasted,
+#debrief-unmatched-pizzas,
+#debrief-remaining-orders {
+  color: #dc3545;
+}
+/* Smooth hover / movement everywhere */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, box-shadow, transform, color;
+  transition-duration: 0.12s;
+  transition-timing-function: ease-out;
+}
+
+/* Slightly softer body background overlay over your tile pattern */
+body {
+  background-color: rgba(223, 219, 229, 0.95);
+}
+
+
