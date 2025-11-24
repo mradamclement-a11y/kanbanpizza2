@@ -789,4 +789,5 @@ def search_engine_info():
     return html_content
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app)
+
