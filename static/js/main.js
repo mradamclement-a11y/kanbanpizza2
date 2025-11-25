@@ -285,7 +285,7 @@ document.getElementById("submit-pizza").addEventListener("click", function() {
       container.innerHTML = "";
       Object.keys(players).forEach(function(sid, index) {
         var colDiv = document.createElement("div");
-        colDiv.classList.add("col-md-4");
+        colDiv.classList.add("col-md-6");
         var builderDiv = document.createElement("div");
         builderDiv.classList.add("pizza-builder-container");
         builderDiv.innerHTML = `<h5>Builder #${index + 1}</h5>`;
