@@ -499,11 +499,15 @@ color:#CE0000;
                 </tr>
               </thead>
               <tbody>
-                <tr><td>Perfect Pizza (R1 & R2)</td><td class="text-success fw-bold">+10</td></tr>
-                <tr><td>Fulfilled Order (R3)</td><td class="text-success fw-bold">+20</td></tr>
-                <tr><td>Wasted (Burnt/Raw/Wrong)</td><td class="text-danger fw-bold">-10</td></tr>
-                <tr><td>Unfinished at buzzer</td><td class="text-danger fw-bold">-5</td></tr>
-                <tr><td>Leftover Ingredients</td><td class="text-danger fw-bold">-1</td></tr>
+                <tr><td>Perfect Pizza (R1 & R2)</td><td class="text-success fw-bold">+10 per Cooked Pizza</td></tr>
+                <tr><td>Fulfilled Order (R3 only)</td><td class="text-success fw-bold">+20 per order</td></tr>
+                <tr><td>Wasted (Burnt/Raw/Wrong)</td><td class="text-danger fw-bold">-10 per Wasted Pizza</td></tr>
+                <tr><td>Uncooked Pizza at End of Round</td><td class="text-danger fw-bold">-5 per Uncooked Pizza</td></tr>
+                <tr><td>Leftover Ingredients</td><td class="text-danger fw-bold">-1 per Unused Ingredient</td></tr>
+				<tr><td>Unmatched Pizzas (R3 only)</td><td class="text-danger fw-bold">-10	Per cooked pizza not matching any order</td></tr>
+				<tr><td>Remaining Orders (R3 only)</td><td class="text-danger fw-bold">-15 Per unfulfilled customer order at end</td></tr>
+
+				  
               </tbody>
             </table>
           </div>
@@ -595,6 +599,7 @@ color:#CE0000;
   <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91c10bf55880b05e',t:'MTc0MTI1NTY1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
+
 
 
 
