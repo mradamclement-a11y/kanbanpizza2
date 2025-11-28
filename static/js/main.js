@@ -7,6 +7,7 @@ var isInitialConnect = true;
 var pendingQrRoom = null; 
 var dashboardInterval = null; // For facilitator view
 var lastCFDData = null; // Store chart data to render when tab is clicked
+var lastLeadTimeData = null;
 
 /* =========================================
    1. QR CODE & URL ENTRY LOGIC
@@ -517,19 +518,22 @@ socket.on('round_started', function(data) {
 });
 
 socket.on('round_ended', function(result) {
+  // Update Text Stats
   document.getElementById("debrief-pizzas-completed").innerText = result.completed_pizzas_count;
   document.getElementById("debrief-pizzas-wasted").innerText = result.wasted_pizzas_count;
   document.getElementById("debrief-pizzas-unsold").innerText = result.unsold_pizzas_count;
   document.getElementById("debrief-ingredients-left").innerText = result.ingredients_left_count || 0;
   document.getElementById("debrief-score").innerText = result.score;
   
-  if (result.lead_times) { prepareChartData(result.lead_times); }
-  
-  // Store CFD data for when the user clicks the tab
+  // 1. SAVE DATA FOR TABS (Don't render yet)
+  if (result.lead_times) {
+      lastLeadTimeData = result.lead_times;
+  }
   if (result.cfd_data) {
       lastCFDData = result.cfd_data;
   }
   
+  // Round 3 Logic
   if (state.round === 3) {
     document.getElementById("fulfilled-orders").style.display = "block";
     document.getElementById("remaining-orders").style.display = "block";
@@ -543,13 +547,19 @@ socket.on('round_ended', function(result) {
     document.getElementById("unmatched-pizzas").style.display = "none";
   }
 
-  const content = debriefContent[state.round] || { question: "Reflect on the round.", quote: "“Continuous improvement is better than delayed perfection.”" };
+  // Update Text
+  const content = debriefContent[state.round] || { question: "Reflect on the round.", quote: "“Continuous improvement...”" };
   document.getElementById("debrief-question").innerText = content.question;
   document.getElementById("debrief-quote").innerText = content.quote;
 
+  // Show Modal
   var debriefModal = new bootstrap.Modal(document.getElementById('debriefModal'), {});
   debriefModal.show();
   
+  // Reset Tab to Summary
+  var triggerFirstTab = document.querySelector('#debriefTabs button[data-bs-target="#tab-summary"]');
+  bootstrap.Tab.getInstance(triggerFirstTab)?.show() || new bootstrap.Tab(triggerFirstTab).show();
+
   if (result.score > 0) {
      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
   }
@@ -688,6 +698,8 @@ function renderLeadTimeChart(labels, completedData, incompleteData) {
             ]
         },
         options: {
+            maintainAspectRatio: false, 
+            responsive: true,
             scales: {
                 y: { beginAtZero: true, title: { display: true, text: 'Lead Time (Seconds)' } },
                 x: { title: { display: true, text: 'Pizza Sequence' } }
@@ -737,6 +749,7 @@ function renderCFD(historyData) {
             ]
         },
         options: {
+            maintainAspectRatio: false, 
             responsive: true,
             scales: {
                 y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Number of Pizzas' } },
@@ -846,6 +859,25 @@ if (facModalEl) {
             lobbyInstance.show();
             // Refresh the room list
             socket.emit('request_room_list');
+        }
+    });
+}
+// Listener for Lead Time Tab
+var ltTab = document.getElementById('leadtime-tab');
+if (ltTab) {
+    ltTab.addEventListener('shown.bs.tab', function (e) {
+        if (lastLeadTimeData) {
+            prepareChartData(lastLeadTimeData);
+        }
+    });
+}
+
+// Listener for CFD Tab
+var cfdTab = document.getElementById('cfd-tab');
+if (cfdTab) {
+    cfdTab.addEventListener('shown.bs.tab', function (e) {
+        if (lastCFDData) {
+            renderCFD(lastCFDData);
         }
     });
 }
