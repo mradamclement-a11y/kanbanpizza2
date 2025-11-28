@@ -744,6 +744,7 @@ socket.on('round_ended', function(result) {
          spread: 70,
          origin: { y: 0.6 }
      });
+    }
   updateVisibility();
 });
 
