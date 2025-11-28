@@ -1,16 +1,41 @@
 /* =========================================
-   GLOBAL VARIABLES & SETUP
+   1. GLOBAL VARIABLES & SETUP
    ========================================= */
 var socket = io({ transports: ['websocket', 'polling'], reconnection: true });
 var myRoom = localStorage.getItem('myRoom') || "";
 var isInitialConnect = true;
 var pendingQrRoom = null; 
-var dashboardInterval = null; // For facilitator view
-var lastCFDData = null; // Store chart data to render when tab is clicked
+
+// Dashboard & Chart Globals
+var dashboardInterval = null; 
+var lastCFDData = null; 
 var lastLeadTimeData = null;
+var cfdChartInstance = null;
+var leadTimeChart = null;
+
+// Game State Globals
+var builderIngredients = [];
+var touchSelectedIngredient = null;
+var ingredientEmoji = { "base": "🟡", "sauce": "🔴", "ham": "🥓", "pineapple": "🍍" };
+var orderEmoji = {
+  "ham": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span></div>',
+  "pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🍍</span></div>',
+  "ham & pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span><span class="emoji">🍍</span></div>',
+  "light ham": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span></div>',
+  "light pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🍍</span></div>',
+  "plain": '<div class="emoji-wrapper"><span class="emoji">🍕</span></div>',
+  "heavy ham": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span></div>',
+  "heavy pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🍍</span></div>'
+};
+
+const debriefContent = {
+  1: { question: "Reflect on the round: How did you identify and streamline your pizza-making process? Did the oven’s WIP limit of 3 pizzas affect your strategy?", quote: "“Working software is the primary measure of progress.”" },
+  2: { question: "Reflect on the round: How did collaboration with your team impact your pizza production?", quote: "“Individuals and interactions over processes and tools.”" },
+  3: { question: "Reflect on the round: How did customer orders change your priorities?", quote: "“Customer collaboration over contract negotiation.”" }
+};
 
 /* =========================================
-   1. QR CODE & URL ENTRY LOGIC
+   2. QR CODE & URL ENTRY LOGIC
    ========================================= */
 document.addEventListener("DOMContentLoaded", function() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -54,7 +79,7 @@ window.cancelQrJoin = function() {
 };
 
 /* =========================================
-   2. STANDARD LOBBY LOGIC
+   3. STANDARD LOBBY LOGIC
    ========================================= */
 async function checkProfanity(text) {
   try {
@@ -99,7 +124,69 @@ async function filterRoomName(event) {
 document.getElementById("join-form").addEventListener("submit", filterRoomName);
 
 /* =========================================
-   3. SOCKET CONNECTION HANDLERS
+   4. GAMEPLAY ACTIONS (MISSING FUNCTIONS FIXED HERE)
+   ========================================= */
+
+// Called by HTML buttons: onclick="prepareIngredient('base')"
+window.prepareIngredient = function(type) {
+  socket.emit('prepare_ingredient', { ingredient_type: type });
+};
+
+// Drag and Drop Logic
+window.allowDrop = function(ev) { ev.preventDefault(); };
+
+window.drag = function(ev) {
+  ev.dataTransfer.setData("ingredient_id", ev.target.getAttribute("data-id"));
+  ev.dataTransfer.setData("ingredient_type", ev.target.dataset.type);
+};
+
+window.dropToBuilder = function(ev) {
+  ev.preventDefault();
+  var ingredient_id = ev.dataTransfer.getData("ingredient_id");
+  var ingredient_type = ev.dataTransfer.getData("ingredient_type");
+  socket.emit('take_ingredient', { ingredient_id: ingredient_id });
+  if (navigator.vibrate) navigator.vibrate(50);
+  
+  if (state.round === 1) {
+    builderIngredients.push({ id: ingredient_id, type: ingredient_type }); 
+    updateBuilderDisplay();
+  }
+};
+
+window.dropToSharedBuilder = function(ev, sid) {
+  ev.preventDefault();
+  var ingredient_id = ev.dataTransfer.getData("ingredient_id");
+  socket.emit('take_ingredient', { ingredient_id: ingredient_id, target_sid: sid });
+};
+
+function updateBuilderDisplay() {
+  var builderDiv = document.getElementById("pizza-builder");
+  builderDiv.innerHTML = "";
+  builderIngredients.forEach(function(ing) {
+    var item = document.createElement("div");
+    item.classList.add("ingredient");
+    item.innerText = ingredientEmoji[ing.type] || ing.type;
+    builderDiv.appendChild(item);
+  });
+}
+
+// Button Listeners
+document.getElementById("submit-pizza").addEventListener("click", function() {
+  if (state.round === 1 && builderIngredients.length === 0) {
+    alert("No ingredients selected for pizza!");
+    return;
+  }
+  socket.emit('build_pizza', {}); 
+  builderIngredients = []; 
+  updateBuilderDisplay();
+});
+
+document.getElementById("oven-on").addEventListener("click", function() { socket.emit('toggle_oven', { state: "on" }); });
+document.getElementById("oven-off").addEventListener("click", function() { socket.emit('toggle_oven', { state: "off" }); });
+document.getElementById("start-round").addEventListener("click", function() { socket.emit('start_round', {}); });
+
+/* =========================================
+   5. SOCKET CONNECTION HANDLERS
    ========================================= */
 socket.on('connect', function() {
   if (pendingQrRoom) return; 
@@ -158,7 +245,7 @@ socket.on('join_error', function(data) {
 });
 
 /* =========================================
-   4. ROOM LIST & QR GENERATION
+   6. ROOM LIST & QR GENERATION
    ========================================= */
 socket.on('room_list', function(data) {
   var tbody = document.getElementById('room-table-body');
@@ -245,7 +332,7 @@ function renderHighScores(high_scores) {
 }
 
 /* =========================================
-   5. HELPERS & RENDERERS
+   7. RENDERERS (Pizza & Builders)
    ========================================= */
 
 // HELPER: Visual Pizza Renderer
@@ -295,38 +382,71 @@ function renderPizza(pizza, extraLabel) {
   return container;
 }
 
+function renderPizzaBuilders(players) {
+  var container = document.getElementById("pizza-builders-container");
+  container.innerHTML = "";
+  Object.keys(players).forEach(function(sid, index) {
+    var colDiv = document.createElement("div");
+    colDiv.classList.add("col-md-6");
+    var builderDiv = document.createElement("div");
+    builderDiv.classList.add("pizza-builder-container");
+    builderDiv.innerHTML = `<h5>Builder #${index + 1}</h5>`;
+    var ingredientsDiv = document.createElement("div");
+    ingredientsDiv.classList.add("d-flex", "flex-wrap", "pizza-builder-dropzone");
+    ingredientsDiv.setAttribute("ondrop", `dropToSharedBuilder(event, '${sid}')`);
+    ingredientsDiv.setAttribute("ondragover", "allowDrop(event)");
+    players[sid]["builder_ingredients"].forEach(function(ing) {
+      var item = document.createElement("div");
+      item.classList.add("ingredient");
+      item.innerText = ingredientEmoji[ing.type] || ing.type;
+      ingredientsDiv.appendChild(item);
+    });
+    builderDiv.appendChild(ingredientsDiv);
+    var submitBtn = document.createElement("button");
+    submitBtn.className = "btn btn-primary btn-custom mt-2";
+    submitBtn.innerText = "Submit Pizza";
+    submitBtn.onclick = function() {
+      socket.emit('build_pizza', { player_sid: sid });
+    };
+    builderDiv.appendChild(submitBtn);
+    colDiv.appendChild(builderDiv);
+    container.appendChild(colDiv);
 
-var builderIngredients = [];
-var touchSelectedIngredient = null;
-var ingredientEmoji = { "base": "🟡", "sauce": "🔴", "ham": "🥓", "pineapple": "🍍" };
-var orderEmoji = {
-  "ham": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span></div>',
-  "pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🍍</span></div>',
-  "ham & pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span><span class="emoji">🍍</span></div>',
-  "light ham": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span></div>',
-  "light pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🍍</span></div>',
-  "plain": '<div class="emoji-wrapper"><span class="emoji">🍕</span></div>',
-  "heavy ham": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🥓</span></div>',
-  "heavy pineapple": '<div class="emoji-wrapper"><span class="emoji">🍕</span><span class="emoji">🍍</span></div>'
-};
-
-const debriefContent = {
-  1: { question: "Reflect on the round: How did you identify and streamline your pizza-making process? Did the oven’s WIP limit of 3 pizzas affect your strategy?", quote: "“Working software is the primary measure of progress.”" },
-  2: { question: "Reflect on the round: How did collaboration with your team impact your pizza production?", quote: "“Individuals and interactions over processes and tools.”" },
-  3: { question: "Reflect on the round: How did customer orders change your priorities?", quote: "“Customer collaboration over contract negotiation.”" }
-};
-
-function updateMessage(text) {
-  document.querySelector("#messages .content").innerText = text;
+    if ('ontouchstart' in window) {
+      ingredientsDiv.addEventListener("touchend", function(ev) {
+        ev.preventDefault();
+        if (touchSelectedIngredient) {
+          socket.emit('take_ingredient', { ingredient_id: touchSelectedIngredient.id, target_sid: sid });
+          touchSelectedIngredient = null;
+          var selectedItems = document.querySelectorAll('.ingredient.selected');
+          selectedItems.forEach(function(el) {
+            el.classList.remove('selected');
+          });
+        }
+      });
+    }
+  });
 }
-function updateRoomLabels(room, playerCount) {
-  document.getElementById("room-name-label").innerText = `${room}`;
-  document.getElementById("player-count-label").innerText = `${playerCount}`;
+
+if ('ontouchstart' in window) {
+  var builderDiv = document.getElementById("pizza-builder");
+  builderDiv.addEventListener("touchend", function(ev) {
+    ev.preventDefault();
+    if (touchSelectedIngredient && state.round === 1) {
+      socket.emit('take_ingredient', { ingredient_id: touchSelectedIngredient.id });
+      builderIngredients.push({ id: touchSelectedIngredient.id, type: touchSelectedIngredient.type });
+      updateBuilderDisplay();
+      var selectedItems = document.querySelectorAll('.ingredient.selected');
+      selectedItems.forEach(function(el) {
+        el.classList.remove('selected');
+      });
+      touchSelectedIngredient = null;
+    }
+  });
 }
-setInterval(() => { socket.emit('time_request'); }, 1000);
 
 /* =========================================
-   6. GAME STATE & UI UPDATES
+   8. GAME STATE & UI UPDATES
    ========================================= */
 
 var state = {};
@@ -337,7 +457,8 @@ function updateGameState(newState) {
 
   const playerCount = Object.keys(state.players).length;
   updateRoomLabels(myRoom || "Unknown", playerCount);
-  if (state.lead_times) { prepareChartData(state.lead_times); }
+  // We don't render LeadTime/CFD here every tick anymore to save performance. 
+  // They are updated on Round End.
   
   // Phase visibility
   if (state.current_phase === "round") {
@@ -488,8 +609,17 @@ function updateVisibility() {
   }
 }
 
+function updateMessage(text) {
+  document.querySelector("#messages .content").innerText = text;
+}
+function updateRoomLabels(room, playerCount) {
+  document.getElementById("room-name-label").innerText = `${room}`;
+  document.getElementById("player-count-label").innerText = `${playerCount}`;
+}
+setInterval(() => { socket.emit('time_request'); }, 1000);
+
 /* =========================================
-   7. GAME EVENTS
+   9. GAME EVENTS
    ========================================= */
 
 socket.on('game_state', function(newState) {
@@ -525,7 +655,7 @@ socket.on('round_ended', function(result) {
   document.getElementById("debrief-ingredients-left").innerText = result.ingredients_left_count || 0;
   document.getElementById("debrief-score").innerText = result.score;
   
-  // 1. SAVE DATA FOR TABS (Don't render yet)
+  // Save Data for Tabs
   if (result.lead_times) {
       lastLeadTimeData = result.lead_times;
   }
@@ -533,7 +663,6 @@ socket.on('round_ended', function(result) {
       lastCFDData = result.cfd_data;
   }
   
-  // Round 3 Logic
   if (state.round === 3) {
     document.getElementById("fulfilled-orders").style.display = "block";
     document.getElementById("remaining-orders").style.display = "block";
@@ -547,36 +676,25 @@ socket.on('round_ended', function(result) {
     document.getElementById("unmatched-pizzas").style.display = "none";
   }
 
-  // Update Text
   const content = debriefContent[state.round] || { question: "Reflect on the round.", quote: "“Continuous improvement...”" };
   document.getElementById("debrief-question").innerText = content.question;
   document.getElementById("debrief-quote").innerText = content.quote;
 
-  // Show Modal
   var debriefModal = new bootstrap.Modal(document.getElementById('debriefModal'), {});
   debriefModal.show();
   
-  // Reset Tab to Summary
-  var triggerFirstTab = document.querySelector('#debriefTabs button[data-bs-target="#tab-summary"]');
-  bootstrap.Tab.getInstance(triggerFirstTab)?.show() || new bootstrap.Tab(triggerFirstTab).show();
-
   if (result.score > 0) {
      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
   }
   
+  // Force reset tabs to summary
+  var triggerFirstTab = document.querySelector('#debriefTabs button[data-bs-target="#tab-summary"]');
+  if(triggerFirstTab) {
+      bootstrap.Tab.getInstance(triggerFirstTab)?.show() || new bootstrap.Tab(triggerFirstTab).show();
+  }
+  
   updateVisibility();
 });
-
-// Listener for the CFD Tab Click
-// We do this because Chart.js doesn't like rendering in hidden tabs (width=0)
-var cfdTab = document.getElementById('cfd-tab');
-if (cfdTab) {
-    cfdTab.addEventListener('shown.bs.tab', function (e) {
-        if (lastCFDData) {
-            renderCFD(lastCFDData);
-        }
-    });
-}
 
 socket.on('game_reset', function(state) {
   updateMessage("Round reset. Ready for a new round.");
@@ -627,16 +745,7 @@ socket.on('time_response', function(data) {
   document.getElementById("oven-timer").innerText = "Oven Time:\n" + data.ovenTime + " sec";
 });
 
-/* =========================================
-   8. INPUT HANDLERS & CHARTS
-   ========================================= */
-
-document.getElementById("oven-on").addEventListener("click", function() { socket.emit('toggle_oven', { state: "on" }); });
-document.getElementById("oven-off").addEventListener("click", function() { socket.emit('toggle_oven', { state: "off" }); });
-document.getElementById("start-round").addEventListener("click", function() { socket.emit('start_round', {}); });
-window.addEventListener("beforeunload", function () { socket.disconnect(); });
-
-// Modal Handlers
+// Modal Handlers (Instructions)
 var modalEl = document.getElementById("modal");
 var modal = new bootstrap.Modal(modalEl);
 var instBtn = document.getElementById("instructions-btn");
@@ -646,59 +755,81 @@ if(instBtn0) instBtn0.addEventListener("click", () => modal.show());
 var closeBtn = document.getElementById("modal-close");
 if(closeBtn) closeBtn.addEventListener("click", () => modal.hide());
 
-// Drag & Drop
-function allowDrop(ev) { ev.preventDefault(); }
-function drag(ev) {
-  ev.dataTransfer.setData("ingredient_id", ev.target.getAttribute("data-id"));
-  ev.dataTransfer.setData("ingredient_type", ev.target.dataset.type);
-}
-function dropToBuilder(ev) {
-  ev.preventDefault();
-  var ingredient_id = ev.dataTransfer.getData("ingredient_id");
-  var ingredient_type = ev.dataTransfer.getData("ingredient_type");
-  socket.emit('take_ingredient', { ingredient_id: ingredient_id });
-  if (navigator.vibrate) navigator.vibrate(50); 
-  if (state.round === 1) {
-    builderIngredients.push({ id: ingredient_id, type: ingredient_type }); 
-    updateBuilderDisplay();
-  }
-}
-function dropToSharedBuilder(ev, sid) {
-  ev.preventDefault();
-  var ingredient_id = ev.dataTransfer.getData("ingredient_id");
-  socket.emit('take_ingredient', { ingredient_id: ingredient_id, target_sid: sid });
+// Listeners for Chart Tabs
+var ltTab = document.getElementById('leadtime-tab');
+if (ltTab) {
+    ltTab.addEventListener('shown.bs.tab', function (e) {
+        if (lastLeadTimeData) {
+            renderLeadTimeChart(lastLeadTimeData); // Call function to render
+        }
+    });
 }
 
-function renderLeadTimeChart(labels, completedData, incompleteData) {
+var cfdTab = document.getElementById('cfd-tab');
+if (cfdTab) {
+    cfdTab.addEventListener('shown.bs.tab', function (e) {
+        if (lastCFDData) {
+            renderCFD(lastCFDData); // Call function to render
+        }
+    });
+}
+
+/* =========================================
+   10. CHARTS
+   ========================================= */
+
+function prepareChartData(leadTimes) {
+    // Just helper to format data if needed, but in this version we pass raw to renderLeadTimeChart
+    // because that function handles the splitting.
+    // However, if you want consistent usage:
+    leadTimes.sort((a, b) => a.start_time - b.start_time);
+    const labels = leadTimes.map((lt, index) => `Pizza ${index + 1}`);
+    const completedData = leadTimes.map(lt => lt.status === "completed" ? lt.lead_time : null);
+    const incompleteData = leadTimes.map(lt => lt.status === "incomplete" ? lt.lead_time : null);
+    
+    // We actually need to pass these processed arrays to the renderer
+    // So let's adjust the renderer call in the Tab Listener or split this better.
+    // For simplicity, let's keep renderLeadTimeChart doing the work, 
+    // but we need to update it to accept RAW data or processed data.
+    // Let's rewrite renderLeadTimeChart to accept RAW data to match renderCFD style.
+}
+
+// Updated Renderer that takes RAW data (Cleanest approach)
+function renderLeadTimeChart(rawLeadTimes) {
     const ctx = document.getElementById('leadTimeChart').getContext('2d');
     if (leadTimeChart) { leadTimeChart.destroy(); }
+    
+    // Process Data
+    rawLeadTimes.sort((a, b) => a.start_time - b.start_time);
+    const labels = rawLeadTimes.map((lt, index) => `Pizza ${index + 1}`);
+    const completedData = rawLeadTimes.map(lt => lt.status === "completed" ? lt.lead_time : null);
+    const incompleteData = rawLeadTimes.map(lt => lt.status === "incomplete" ? lt.lead_time : null);
+
     leadTimeChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
                 {
-                    label: 'Completed Pizzas',
+                    label: 'Completed',
                     data: completedData,
-                    borderColor: 'rgba(75, 192, 75, 1)',
-                    backgroundColor: 'rgba(75, 192, 75, 0.2)',
-                    pointBackgroundColor: 'rgba(75, 192, 75, 1)',
-                    pointBorderColor: 'rgba(75, 192, 75, 1)',
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    pointBackgroundColor: '#28a745',
                     fill: false, spanGaps: true
                 },
                 {
-                    label: 'Incomplete Pizzas',
+                    label: 'Incomplete',
                     data: incompleteData,
-                    borderColor: 'rgba(255, 99, 132, 1)', 
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    pointBackgroundColor: 'rgba(255, 99, 132, 1)',
-                    pointBorderColor: 'rgba(255, 99, 132, 1)',
+                    borderColor: '#dc3545', 
+                    backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                    pointBackgroundColor: '#dc3545',
                     fill: false, spanGaps: true
                 }
             ]
         },
         options: {
-            maintainAspectRatio: false, 
+            maintainAspectRatio: false,
             responsive: true,
             scales: {
                 y: { beginAtZero: true, title: { display: true, text: 'Lead Time (Seconds)' } },
@@ -709,8 +840,6 @@ function renderLeadTimeChart(labels, completedData, incompleteData) {
     });
 }
 
-// CFD Renderer
-let cfdChartInstance;
 function renderCFD(historyData) {
     const ctx = document.getElementById('cfdChart').getContext('2d');
     if (cfdChartInstance) cfdChartInstance.destroy();
@@ -749,7 +878,7 @@ function renderCFD(historyData) {
             ]
         },
         options: {
-            maintainAspectRatio: false, 
+            maintainAspectRatio: false,
             responsive: true,
             scales: {
                 y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Number of Pizzas' } },
@@ -764,18 +893,14 @@ function renderCFD(historyData) {
 }
 
 /* =========================================
-   FACILITATOR DASHBOARD LOGIC
+   11. FACILITATOR DASHBOARD LOGIC
    ========================================= */
 
-// 1. Global Variable for the timer
-var dashboardInterval = null;
-
-// 2. Function to Open Modal (Attached to Window for HTML access)
+// 1. Function to Open Modal (Attached to Window for HTML access)
 window.openFacilitator = function() {
     // A. Close the Lobby (Room) Modal if it's open
     var lobbyEl = document.getElementById('roomModal');
     if (lobbyEl) {
-        // use getOrCreateInstance to prevent errors if it wasn't fully initialized
         var lobbyInstance = bootstrap.Modal.getOrCreateInstance(lobbyEl);
         lobbyInstance.hide();
     }
@@ -802,13 +927,12 @@ window.openFacilitator = function() {
         if (facEl.classList.contains('show')) {
             socket.emit('request_admin_dashboard');
         } else {
-            // Safety: stop polling if class is gone
             clearInterval(dashboardInterval);
         }
     }, 3000);
 };
 
-// 3. Handle Data from Server
+// 2. Handle Data from Server
 socket.on('admin_dashboard_update', function(data) {
     const tbody = document.getElementById('facilitator-table-body');
     if (!tbody) return;
@@ -841,8 +965,7 @@ socket.on('admin_dashboard_update', function(data) {
     });
 });
 
-// 4. Listener: When Facilitator closes, Re-open Lobby
-// We wrap this in a check to ensure the element exists
+// 3. Listener: When Facilitator closes, Re-open Lobby
 var facModalEl = document.getElementById('facilitatorModal');
 if (facModalEl) {
     facModalEl.addEventListener('hidden.bs.modal', function () {
@@ -859,25 +982,6 @@ if (facModalEl) {
             lobbyInstance.show();
             // Refresh the room list
             socket.emit('request_room_list');
-        }
-    });
-}
-// Listener for Lead Time Tab
-var ltTab = document.getElementById('leadtime-tab');
-if (ltTab) {
-    ltTab.addEventListener('shown.bs.tab', function (e) {
-        if (lastLeadTimeData) {
-            prepareChartData(lastLeadTimeData);
-        }
-    });
-}
-
-// Listener for CFD Tab
-var cfdTab = document.getElementById('cfd-tab');
-if (cfdTab) {
-    cfdTab.addEventListener('shown.bs.tab', function (e) {
-        if (lastCFDData) {
-            renderCFD(lastCFDData);
         }
     });
 }
