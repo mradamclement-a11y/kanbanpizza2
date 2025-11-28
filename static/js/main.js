@@ -378,6 +378,7 @@ function dropToBuilder(ev) {
   var ingredient_id = ev.dataTransfer.getData("ingredient_id");
   var ingredient_type = ev.dataTransfer.getData("ingredient_type");
   socket.emit('take_ingredient', { ingredient_id: ingredient_id });
+  if (navigator.vibrate) navigator.vibrate(50); 
   if (state.round === 1) {
     builderIngredients.push({ id: ingredient_id, type: ingredient_type }); 
     updateBuilderDisplay();
