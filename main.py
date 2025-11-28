@@ -798,8 +798,44 @@ def search_engine_info():
     """
     return html_content
 
+
+@socketio.on('request_admin_dashboard')
+def on_request_admin_dashboard():
+    dashboard_data = []
+    current_time = time.time()
+
+    for room_name, state in group_games.items():
+        # Calculate time remaining dynamically
+        time_left = 0
+        if state["current_phase"] == "round" and state["round_start_time"]:
+            elapsed = current_time - state["round_start_time"]
+            time_left = max(0, int(state["round_duration"] - elapsed))
+        elif state["current_phase"] == "debrief" and state.get("debrief_start_time"):
+            elapsed = current_time - state.get("debrief_start_time")
+            time_left = max(0, int(state["debrief_duration"] - elapsed))
+
+        # Simple live stats
+        dashboard_data.append({
+            "room": room_name,
+            "players": len(state["players"]),
+            "round": state["round"],
+            "phase": state["current_phase"].upper(),
+            "time_left": time_left,
+            "completed": len(state["completed_pizzas"]),
+            "wasted": len(state["wasted_pizzas"]),
+            "oven": len(state["oven"]),
+            "built": len(state["built_pizzas"])
+        })
+
+    # Sort by Room Name
+    dashboard_data.sort(key=lambda x: x["room"])
+    
+    emit('admin_dashboard_update', {"rooms": dashboard_data})
+
+    
 if __name__ == '__main__':
     socketio.run(app)
+
 
 
 
