@@ -124,15 +124,14 @@ async function filterRoomName(event) {
 document.getElementById("join-form").addEventListener("submit", filterRoomName);
 
 /* =========================================
-   4. GAMEPLAY ACTIONS (MISSING FUNCTIONS FIXED HERE)
+   4. GAMEPLAY ACTIONS 
    ========================================= */
 
-// Called by HTML buttons: onclick="prepareIngredient('base')"
+// Explicitly attached to window to fix "prepareIngredient is not defined" error
 window.prepareIngredient = function(type) {
   socket.emit('prepare_ingredient', { ingredient_type: type });
 };
 
-// Drag and Drop Logic
 window.allowDrop = function(ev) { ev.preventDefault(); };
 
 window.drag = function(ev) {
@@ -170,7 +169,6 @@ function updateBuilderDisplay() {
   });
 }
 
-// Button Listeners
 document.getElementById("submit-pizza").addEventListener("click", function() {
   if (state.round === 1 && builderIngredients.length === 0) {
     alert("No ingredients selected for pizza!");
@@ -332,28 +330,24 @@ function renderHighScores(high_scores) {
 }
 
 /* =========================================
-   7. RENDERERS (Pizza & Builders)
+   7. RENDERERS
    ========================================= */
 
-// HELPER: Visual Pizza Renderer
 function renderPizza(pizza, extraLabel) {
   var container = document.createElement("div");
   container.className = "d-flex align-items-center mb-2 p-2 border rounded bg-white";
   if (pizza.status) container.classList.add(pizza.status);
 
-  // 1. Create the Visual Pizza Div
+  // 1. Visual Pizza
   var visual = document.createElement("div");
   visual.className = "pizza-visual";
 
-  // Check Base & Sauce
   if (pizza.ingredients && pizza.ingredients.sauce > 0) {
     visual.classList.add("has-sauce");
   }
 
-  // Render Toppings
   if (pizza.ingredients) {
     let toppingCount = 0;
-    // Add Ham
     for (let i = 0; i < (pizza.ingredients.ham || 0); i++) {
         let span = document.createElement("span");
         span.className = `topping-icon pos-${(toppingCount % 5) + 1}`;
@@ -362,7 +356,6 @@ function renderPizza(pizza, extraLabel) {
         visual.appendChild(span);
         toppingCount++;
     }
-    // Add Pineapple
     for (let i = 0; i < (pizza.ingredients.pineapple || 0); i++) {
         let span = document.createElement("span");
         span.className = `topping-icon pos-${(toppingCount % 5) + 1}`;
@@ -457,10 +450,7 @@ function updateGameState(newState) {
 
   const playerCount = Object.keys(state.players).length;
   updateRoomLabels(myRoom || "Unknown", playerCount);
-  // We don't render LeadTime/CFD here every tick anymore to save performance. 
-  // They are updated on Round End.
   
-  // Phase visibility
   if (state.current_phase === "round") {
     document.getElementById("game-area").style.display = "block";
     document.getElementById("start-round").style.display = "none";
@@ -471,7 +461,6 @@ function updateGameState(newState) {
 
   updateVisibility();
 
-  // Orders
   var ordersDiv = document.getElementById("customer-orders");
   var ordersList = document.getElementById("orders-list");
   var orderCount = document.getElementById("order-count");
@@ -510,7 +499,6 @@ function updateGameState(newState) {
     orderCount.innerText = "0";
   }
 
-  // Ingredients Pool
   var poolDiv = document.getElementById("prepared-pool");
   poolDiv.innerHTML = "";
   state.prepared_ingredients.forEach(function(item) {
@@ -531,7 +519,7 @@ function updateGameState(newState) {
     poolDiv.appendChild(div);
   });
 
-  // Built Pizzas (Check bottleneck)
+  // Built Pizzas
   var builtDiv = document.getElementById("built-pizzas");
   builtDiv.innerHTML = "";
   const isOvenFull = state.oven.length >= state.max_pizzas_in_oven;
@@ -581,34 +569,6 @@ function updateGameState(newState) {
   });
 }
 
-function updateVisibility() {
-  const pizzaBuilder = document.getElementById("pizza-builder");
-  const submitPizza = document.getElementById("submit-pizza");
-  const buildersContainer = document.getElementById("pizza-builders-container");
-  const builderHeading = document.getElementById("builder-heading");
-
-  if (state.round >= 1 && state.current_phase === "debrief" && state.round < state.max_rounds) {
-    pizzaBuilder.style.display = "none";
-    submitPizza.style.display = "none";
-    buildersContainer.style.display = "flex";
-    builderHeading.innerText = "Shared Pizza Builders";
-    renderPizzaBuilders(state.players);
-  } else if (state.round > 1) {
-    pizzaBuilder.style.display = "none";
-    submitPizza.style.display = "none";
-    buildersContainer.style.display = "flex";
-    builderHeading.innerText = "Shared Pizza Builders";
-    if (state.current_phase === "round") {
-      renderPizzaBuilders(state.players);
-    }
-  } else {
-    pizzaBuilder.style.display = "flex";
-    submitPizza.style.display = "inline-block";
-    buildersContainer.style.display = "none";
-    builderHeading.innerText = "Your Pizza Builder";
-  }
-}
-
 function updateMessage(text) {
   document.querySelector("#messages .content").innerText = text;
 }
@@ -648,14 +608,13 @@ socket.on('round_started', function(data) {
 });
 
 socket.on('round_ended', function(result) {
-  // Update Text Stats
   document.getElementById("debrief-pizzas-completed").innerText = result.completed_pizzas_count;
   document.getElementById("debrief-pizzas-wasted").innerText = result.wasted_pizzas_count;
   document.getElementById("debrief-pizzas-unsold").innerText = result.unsold_pizzas_count;
   document.getElementById("debrief-ingredients-left").innerText = result.ingredients_left_count || 0;
   document.getElementById("debrief-score").innerText = result.score;
   
-  // Save Data for Tabs
+  // Store Data for Tabs (but don't render yet)
   if (result.lead_times) {
       lastLeadTimeData = result.lead_times;
   }
@@ -690,7 +649,10 @@ socket.on('round_ended', function(result) {
   // Force reset tabs to summary
   var triggerFirstTab = document.querySelector('#debriefTabs button[data-bs-target="#tab-summary"]');
   if(triggerFirstTab) {
-      bootstrap.Tab.getInstance(triggerFirstTab)?.show() || new bootstrap.Tab(triggerFirstTab).show();
+      // Safely check for tab instance or create new
+      var tabInstance = bootstrap.Tab.getInstance(triggerFirstTab);
+      if(!tabInstance) tabInstance = new bootstrap.Tab(triggerFirstTab);
+      tabInstance.show();
   }
   
   updateVisibility();
@@ -745,56 +707,11 @@ socket.on('time_response', function(data) {
   document.getElementById("oven-timer").innerText = "Oven Time:\n" + data.ovenTime + " sec";
 });
 
-// Modal Handlers (Instructions)
-var modalEl = document.getElementById("modal");
-var modal = new bootstrap.Modal(modalEl);
-var instBtn = document.getElementById("instructions-btn");
-if(instBtn) instBtn.addEventListener("click", () => modal.show());
-var instBtn0 = document.getElementById("instructions-btn0");
-if(instBtn0) instBtn0.addEventListener("click", () => modal.show());
-var closeBtn = document.getElementById("modal-close");
-if(closeBtn) closeBtn.addEventListener("click", () => modal.hide());
-
-// Listeners for Chart Tabs
-var ltTab = document.getElementById('leadtime-tab');
-if (ltTab) {
-    ltTab.addEventListener('shown.bs.tab', function (e) {
-        if (lastLeadTimeData) {
-            renderLeadTimeChart(lastLeadTimeData); // Call function to render
-        }
-    });
-}
-
-var cfdTab = document.getElementById('cfd-tab');
-if (cfdTab) {
-    cfdTab.addEventListener('shown.bs.tab', function (e) {
-        if (lastCFDData) {
-            renderCFD(lastCFDData); // Call function to render
-        }
-    });
-}
-
 /* =========================================
    10. CHARTS
    ========================================= */
 
-function prepareChartData(leadTimes) {
-    // Just helper to format data if needed, but in this version we pass raw to renderLeadTimeChart
-    // because that function handles the splitting.
-    // However, if you want consistent usage:
-    leadTimes.sort((a, b) => a.start_time - b.start_time);
-    const labels = leadTimes.map((lt, index) => `Pizza ${index + 1}`);
-    const completedData = leadTimes.map(lt => lt.status === "completed" ? lt.lead_time : null);
-    const incompleteData = leadTimes.map(lt => lt.status === "incomplete" ? lt.lead_time : null);
-    
-    // We actually need to pass these processed arrays to the renderer
-    // So let's adjust the renderer call in the Tab Listener or split this better.
-    // For simplicity, let's keep renderLeadTimeChart doing the work, 
-    // but we need to update it to accept RAW data or processed data.
-    // Let's rewrite renderLeadTimeChart to accept RAW data to match renderCFD style.
-}
-
-// Updated Renderer that takes RAW data (Cleanest approach)
+// UPDATED: Now accepts raw data and processes internally
 function renderLeadTimeChart(rawLeadTimes) {
     const ctx = document.getElementById('leadTimeChart').getContext('2d');
     if (leadTimeChart) { leadTimeChart.destroy(); }
@@ -829,7 +746,7 @@ function renderLeadTimeChart(rawLeadTimes) {
             ]
         },
         options: {
-            maintainAspectRatio: false,
+            maintainAspectRatio: false, // Bigger charts
             responsive: true,
             scales: {
                 y: { beginAtZero: true, title: { display: true, text: 'Lead Time (Seconds)' } },
@@ -878,7 +795,7 @@ function renderCFD(historyData) {
             ]
         },
         options: {
-            maintainAspectRatio: false,
+            maintainAspectRatio: false, // Bigger charts
             responsive: true,
             scales: {
                 y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Number of Pizzas' } },
@@ -888,6 +805,25 @@ function renderCFD(historyData) {
                 tooltip: { mode: 'index', intersect: false },
                 title: { display: true, text: 'Work In Progress over Time' }
             }
+        }
+    });
+}
+
+// Chart Tab Listeners
+var ltTab = document.getElementById('leadtime-tab');
+if (ltTab) {
+    ltTab.addEventListener('shown.bs.tab', function (e) {
+        if (lastLeadTimeData) {
+            renderLeadTimeChart(lastLeadTimeData); 
+        }
+    });
+}
+
+var cfdTab = document.getElementById('cfd-tab');
+if (cfdTab) {
+    cfdTab.addEventListener('shown.bs.tab', function (e) {
+        if (lastCFDData) {
+            renderCFD(lastCFDData); 
         }
     });
 }
