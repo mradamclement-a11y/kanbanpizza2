@@ -915,3 +915,67 @@ function renderLeadTimeChart(labels, completedData, incompleteData) {
         }
     });
 }
+
+/* =========================================
+   FACILITATOR DASHBOARD LOGIC
+   ========================================= */
+let dashboardInterval = null;
+
+// 1. Open the Modal and start polling
+window.openFacilitator = function() {
+    var modal = new bootstrap.Modal(document.getElementById('facilitatorModal'));
+    modal.show();
+    
+    // Request data immediately
+    socket.emit('request_admin_dashboard');
+    
+    // Start polling every 3 seconds
+    if (dashboardInterval) clearInterval(dashboardInterval);
+    dashboardInterval = setInterval(() => {
+        // Only poll if modal is actually visible
+        if (document.getElementById('facilitatorModal').classList.contains('show')) {
+            socket.emit('request_admin_dashboard');
+        } else {
+            clearInterval(dashboardInterval); // Stop if closed
+        }
+    }, 3000);
+};
+
+// 2. Handle the Data from Server
+socket.on('admin_dashboard_update', function(data) {
+    const tbody = document.getElementById('facilitator-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (data.rooms.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-muted">No active rooms found.</td></tr>';
+        return;
+    }
+
+    data.rooms.forEach(room => {
+        const row = document.createElement('tr');
+        
+        // Color code phase
+        let phaseBadge = 'bg-secondary';
+        if (room.phase === 'ROUND') phaseBadge = 'bg-success';
+        if (room.phase === 'DEBRIEF') phaseBadge = 'bg-warning text-dark';
+
+        row.innerHTML = `
+            <td class="text-start fw-bold">${room.room} <span class="badge bg-light text-dark border">R${room.round}</span></td>
+            <td><span class="badge ${phaseBadge}">${room.phase}</span></td>
+            <td class="fw-bold font-monospace">${room.time_left}s</td>
+            <td>${room.players}</td>
+            <td class="text-success fw-bold">${room.completed}</td>
+            <td class="text-danger fw-bold">${room.wasted}</td>
+            <td>${room.oven}</td>
+            <td>${room.built}</td>
+        `;
+        tbody.appendChild(row);
+    });
+});
+
+// 3. Stop polling when modal closes (Optimization)
+document.getElementById('facilitatorModal').addEventListener('hidden.bs.modal', function () {
+    if (dashboardInterval) clearInterval(dashboardInterval);
+});
