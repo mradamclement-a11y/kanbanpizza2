@@ -594,7 +594,22 @@ color:#CE0000;
           <h5 class="modal-title">End of Round Summary</h5>
         </div>
         <div class="modal-body" id="debriefModalBody">
-          <p><strong>Pizzas Completed:</strong> <span id="debrief-pizzas-completed">0</span></p>
+  
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="debriefTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#tab-summary" type="button">📊 Summary</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="cfd-tab" data-bs-toggle="tab" data-bs-target="#tab-cfd" type="button">🌊 Flow (CFD)</button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    
+    <!-- Tab 1: Existing Content -->
+    <div class="tab-pane fade show active" id="tab-summary">
+        <p><strong>Pizzas Completed:</strong> <span id="debrief-pizzas-completed">0</span></p>
           <p><strong>Pizzas Wasted:</strong> <span id="debrief-pizzas-wasted">0</span></p>
           <p><strong>Uncooked Pizzas:</strong> <span id="debrief-pizzas-unsold">0</span></p>
           <p><strong>Leftover Ingredients:</strong> <span id="debrief-ingredients-left">0</span></p>
@@ -603,14 +618,25 @@ color:#CE0000;
           <p id="unmatched-pizzas" style="display: none;"><strong>Unmatched Pizzas:</strong> <span id="debrief-unmatched-pizzas">0</span></p>
           <p><strong>Score:</strong> <span id="debrief-score">0</span></p>
           <hr>
-          <div>
-              <h5>Lead Time Chart</h5>
-              <canvas id="leadTimeChart"></canvas>
-          </div>
-          <hr>
-          <p><em class="text-muted" id="debrief-question"></em></p>
-          <p><em class="text-muted" id="debrief-quote"></em></p>
+                  <div>
+            <h5>Lead Time Chart</h5>
+            <canvas id="leadTimeChart"></canvas>
         </div>
+    </div>
+
+    <!-- Tab 2: New CFD -->
+    <div class="tab-pane fade" id="tab-cfd">
+        <h5>Cumulative Flow Diagram</h5>
+        <p class="small text-muted">Ideally, the bands should be parallel. Expanding bands = Bottlenecks.</p>
+        <canvas id="cfdChart" style="max-height: 300px;"></canvas>
+    </div>
+    
+  </div>
+
+  <hr>
+  <p><em class="text-muted" id="debrief-question"></em></p>
+  <p><em class="text-muted" id="debrief-quote"></em></p>
+</div>
       </div>
     </div>
   </div>
@@ -717,6 +743,7 @@ color:#CE0000;
   <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91c10bf55880b05e',t:'MTc0MTI1NTY1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
+
 
 
 
