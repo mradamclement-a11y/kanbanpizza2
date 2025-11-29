@@ -535,3 +535,10 @@ html, body {
   padding: 0;
 }
 
+/* Kill the window scrollbar completely */
+html {
+  height: 100%;
+  overflow-y: hidden !important;  /* no vertical page scroll */
+  overflow-x: hidden !important;  /* safety */
+}
+
