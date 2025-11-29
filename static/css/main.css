@@ -538,3 +538,6 @@ header h5 {
   overflow: hidden !important;
 }
 
+.modal{
+  overflow-y: hidden;
+}
