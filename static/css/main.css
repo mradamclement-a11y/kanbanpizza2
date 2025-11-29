@@ -515,7 +515,15 @@ header h5 {
 .pos-5 { top: 35%; left: 35%; }
 .pos-6 { top: 15%; left: 15%; }
 
-.modal-backdrop.show {
-    opacity: 1 !important;
-    background-color: #000000 !important;
+/* Make Bootstrap modal backdrop match the loading overlay gradient */
+.modal-backdrop {
+  background: radial-gradient(circle at top, #fff7e6 0%, #f2e3ff 40%, #dfdbe5 100%) !important;
+  opacity: 0; /* starting state for fade */
+  transition: opacity 0.3s ease-out;
 }
+
+/* When the modal is fully shown, backdrop goes to full opacity */
+.modal-backdrop.show {
+  opacity: 1 !important;
+}
+
