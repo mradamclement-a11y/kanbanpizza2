@@ -103,10 +103,8 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
   box-shadow: var(--pizza-shadow);
   background: rgba(255, 255, 255, 0.96);
-  /* Update margin calculation */
   margin: 10px; 
-  /* Ensure height doesn't exceed viewport due to margin */
-  height: calc(100vh - 20px); 
+
 }
 /* Kanban columns layout */
 .gridcontainer {
@@ -266,6 +264,7 @@
 /* Card-style panels for main areas */
 body {
   background-color: rgba(223, 219, 229, 0.95);
+  margin: 0;
 }
 #customer-orders,
 #game-area,
