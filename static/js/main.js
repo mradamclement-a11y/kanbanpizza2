@@ -5,7 +5,7 @@ var socket = io({ transports: ['websocket', 'polling'], reconnection: true });
 var myRoom = localStorage.getItem('myRoom') || "";
 var isInitialConnect = true;
 var pendingQrRoom = null; 
-
+var isOvenActive = false;
 // Dashboard & Chart Globals
 var dashboardInterval = null; 
 var lastCFDData = null; 
