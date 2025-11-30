@@ -551,15 +551,17 @@ function updateGameState(newState) {
   // Built Pizzas
   var builtDiv = document.getElementById("built-pizzas");
   builtDiv.innerHTML = "";
-  const isOvenFull = state.oven.length >= state.max_pizzas_in_oven;
-
+  const isOvenFull = state.oven.lengtfh >= state.max_pizzas_in_oven;
+  const isOvenOn = state.is_oven_on === true; 
   state.built_pizzas.forEach(function(pizza) {
     var div = renderPizza(pizza, "");
     var btn = document.createElement("button");
 
-    if (isOvenFull) {
+    // Disable if Full OR On
+    if (isOvenFull || isOvenOn) {
         btn.className = "btn btn-sm btn-secondary ms-2 disabled";
-        btn.innerText = "Oven Full";
+        // Update text based on why it's disabled
+        btn.innerText = isOvenOn ? "Oven is ON" : "Oven Full";
         btn.disabled = true;
         div.style.opacity = "0.7";
     } else {
@@ -703,9 +705,35 @@ socket.on('pizza_built', function(pizza) { updateMessage("Pizza built: " + pizza
 socket.on('oven_error', function(data) { updateMessage("Oven Error: " + data.message); });
 socket.on('pizza_moved_to_oven', function(pizza) { updateMessage("Pizza moved to oven: " + pizza.pizza_id); });
 socket.on('oven_toggled', function(data) {
-  updateMessage((data.state === "on") ? "Oven turned ON." : "Oven turned OFF.");
+  var isOn = (data.state === "on");
+
+  // 1. Update the message
+  updateMessage(isOn ? "Oven turned ON." : "Oven turned OFF.");
+  
+  // 2. Update the visual glowing effect
   var ovenContainer = document.getElementById("oven-container");
-  if (data.state === "on") { ovenContainer.classList.add("oven-active"); } else { ovenContainer.classList.remove("oven-active"); }
+  if (isOn) { 
+      ovenContainer.classList.add("oven-active"); 
+  } else { 
+      ovenContainer.classList.remove("oven-active"); 
+  }
+
+  // 3. Disable/Enable the buttons based on state
+  var btnOn = document.getElementById("oven-on");
+  var btnOff = document.getElementById("oven-off");
+  
+  if (btnOn && btnOff) {
+      btnOn.disabled = isOn;       // If oven is ON, disable the "On" button
+      btnOff.disabled = !isOn;     // If oven is ON, enable the "Off" button
+  }
+  
+  // Optional: Trigger a refresh of the pizza list so "Move to Oven" buttons 
+  // can be disabled while baking (if your game logic requires that).
+  if (typeof updateGameState === "function" && typeof state !== "undefined") {
+      // Add a flag to local state to track oven status for other functions
+      state.is_oven_on = isOn; 
+      updateGameState(state);
+  }
 });
 socket.on('clear_shared_builder', function(data) { renderPizzaBuilders(state.players); });
 socket.on('new_order', function(order) {
