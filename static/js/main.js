@@ -558,7 +558,7 @@ function updateGameState(newState) {
     var btn = document.createElement("button");
 
     // Disable if Full OR On
-    if (isOvenFull || isOvenOn) {
+    if (isOvenFull || isOvenActive) {
         btn.className = "btn btn-sm btn-secondary ms-2 disabled";
         // Update text based on why it's disabled
         btn.innerText = isOvenOn ? "Oven is ON" : "Oven Full";
