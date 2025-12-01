@@ -1,3 +1,6 @@
+/* =========================
+   EMOJI STACK & STATES
+   ========================= */
 .emoji-wrapper {
   position: relative;
   display: inline-block;
@@ -14,6 +17,7 @@
   transform: scale(0.6);
   left: -0.2rem;
 }
+
 .undercooked .emoji {
   filter: sepia(1) hue-rotate(10deg) saturate(300%);
 }
@@ -29,19 +33,146 @@
   filter: grayscale(1) contrast(1.2);
 }
 
+/* =========================
+   BASIC ELEMENTS & PALETTE
+   ========================= */
+:root {
+  --pizza-bg: #fdf7ec;
+  --pizza-card: #ffffff;
+  --pizza-border: #e0d5c2;
+  --pizza-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  --pizza-red: #ce0000;
+  --pizza-text: #343a40;
+}
+
+body {
+  background-color: rgba(223, 219, 229, 0.95);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Invalid form feedback */
+.is-invalid {
+  border-color: #dc3545 !important;
+}
+
+/* =========================
+   GAME CONTAINER & GRID
+   ========================= */
+.game-container {
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: var(--pizza-shadow);
+  background: rgba(255, 255, 255, 0.96);
+  margin: 10px;
+}
+
+.gridcontainer {
+  gap: 12px;
+}
+
+/* Headings inside Kanban columns */
+.gridcontainer h3,
+.gridcontainer h4,
+.gridcontainer h5 {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.05rem;
+  color: var(--pizza-red);
+}
+
+/* Tiny accent pill before headings */
+.gridcontainer h3::before,
+.gridcontainer h4::before,
+.gridcontainer h5::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffc857, #ff7b00);
+}
+
+/* =========================
+   PIZZA BUILDERS
+   ========================= */
 .pizza-builder-container {
-  border: 1px solid #4A4A4A;
+  border: 1px solid #4a4a4a;
   padding: 10px;
   margin-bottom: 10px;
   min-height: 120px;
 }
 .pizza-builder-dropzone {
-  background-color: #D3D3D3;
+  background-color: #d3d3d3;
   min-height: 80px;
-  border: 1px dashed #4A4A4A;
+  border: 1px dashed #4a4a4a;
   padding: 10px;
 }
 
+/* Ingredient tokens */
+.ingredient {
+  font-size: clamp(1.4rem, 4.5vw, 1.8rem);
+  margin: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    border-color 0.1s ease;
+}
+.ingredient:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
+}
+.ingredient.selected {
+  border: 2px solid var(--pizza-red);
+  box-shadow: 0 0 0 2px rgba(206, 0, 0, 0.2);
+}
+
+/* Shared zones (drop/piles) */
+#prepared-pool,
+#pizza-builder,
+#pizza-builders-container .pizza-builder-dropzone,
+#oven,
+#built-pizzas,
+#completed,
+#wasted,
+#orders-list {
+  background: #f7f7fb;
+  border-radius: 8px;
+  border: 2px dashed #b0b0c0 !important;
+  padding: 8px;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* Hover feedback for zones (orders list excluded) */
+#prepared-pool:hover,
+#pizza-builder:hover,
+#pizza-builders-container .pizza-builder-dropzone:hover,
+#oven:hover,
+#built-pizzas:hover,
+#completed:hover,
+#wasted:hover {
+  box-shadow: 0 0 0 3px rgba(206, 0, 0, 0.1);
+  transform: translateY(-1px);
+  border-color: var(--pizza-red) !important;
+}
+
+/* =========================
+   ORDER CARDS
+   ========================= */
 .order-card {
   background-color: #e9ecef;
   border: 1px solid #ccc;
@@ -67,128 +198,28 @@
 .order-emoji {
   font-size: clamp(1.2rem, 4vw, 1.5rem);
 }
-.fork-me-on-github {
-    overflow: hidden !important;
-}
 
+/* =========================
+   GITHUB RIBBON
+   ========================= */
+.fork-me-on-github {
+  overflow: hidden !important;
+}
 .fork-me-on-github:hover .octo-arm {
   animation: octocat-wave 560ms ease-in-out;
 }
 @media (max-width: 500px) {
   .fork-me-on-github:hover .octo-arm {
-    animation: none; /* No animation on hover */
+    animation: none;
   }
   .fork-me-on-github .octo-arm {
-    animation: octocat-wave 560ms ease-in-out; /* Continuous animation */
+    animation: octocat-wave 560ms ease-in-out;
   }
 }
 
-.is-invalid {
-  border-color: #dc3545 !important;
-}
-
-/* Colour palette */
-:root {
-  --pizza-bg: #fdf7ec;
-  --pizza-card: #ffffff;
-  --pizza-border: #e0d5c2;
-  --pizza-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  --pizza-red: #CE0000;
-  --pizza-text: #343a40;
-}
-
-/* Main card the game sits in */
-.game-container {
-  border-radius: 18px;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: var(--pizza-shadow);
-  background: rgba(255, 255, 255, 0.96);
-  margin: 10px; 
-
-}
-/* Kanban columns layout */
-.gridcontainer {
-  gap: 12px;
-}
-
-/* Headings inside the Kanban columns */
-.gridcontainer h3,
-.gridcontainer h4,
-.gridcontainer h5 {
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 1.05rem;
-  color: var(--pizza-red);
-}
-
-/* Tiny accent “pill” before each heading */
-.gridcontainer h3::before,
-.gridcontainer h4::before,
-.gridcontainer h5::before {
-  content: "";
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ffc857, #ff7b00);
-}
-
-/* Ingredient tokens – final version */
-.ingredient {
-  font-size: clamp(1.4rem, 4.5vw, 1.8rem);
-  margin: 4px;
-  padding: 6px 10px;
-  cursor: pointer;
-  touch-action: manipulation;
-  border-radius: 999px;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-  border: 1px solid rgba(0,0,0,0.08);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease;
-}
-.ingredient:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.18);
-}
-.ingredient.selected {
-  border: 2px solid #CE0000;
-  box-shadow: 0 0 0 2px rgba(206,0,0,0.2);
-}
-
-/* Shared drop/pile zones */
-#prepared-pool,
-#pizza-builder,
-#pizza-builders-container .pizza-builder-dropzone,
-#oven,
-#built-pizzas,
-#completed,
-#wasted,
-#orders-list {
-  background: #f7f7fb;
-  border-radius: 8px;
-  border: 2px dashed #b0b0c0 !important;
-  padding: 8px;
-  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
-}
-
-/* Hover feedback for zones */
-#prepared-pool:hover,
-#pizza-builder:hover,
-#pizza-builders-container .pizza-builder-dropzone:hover,
-#oven:hover,
-#built-pizzas:hover,
-#completed:hover,
-#wasted:hover {
-  box-shadow: 0 0 0 3px rgba(206,0,0,0.1);
-  transform: translateY(-1px);
-  border-color: #CE0000 !important;
-}
-
-/* Buttons */
+/* =========================
+   BUTTONS
+   ========================= */
 .btn-custom,
 #start-round,
 #submit-pizza,
@@ -198,8 +229,11 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    filter 0.1s ease;
 }
 .btn-custom:hover,
 #start-round:hover,
@@ -207,9 +241,10 @@
 #oven-on:hover,
 #oven-off:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.18);
   filter: brightness(1.03);
 }
+
 /* Primary action colours */
 #start-round,
 #submit-pizza {
@@ -225,29 +260,49 @@
   border-color: #b21f2d;
 }
 
-/* Timers */
+/* Override Bootstrap button colours */
+.btn-primary {
+  background-color: #ff5722 !important;
+  border-color: #e64a19 !important;
+}
+.btn-success {
+  background-color: #4caf50 !important;
+}
+
+/* Oven buttons layout */
+.ovenbuttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================
+   TIMERS
+   ========================= */
 .timer-container.oven,
 .timer-container.stopwatch {
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 2vw
+  padding: 2vw;
 }
 .timer-container.oven.oven-active {
   background: radial-gradient(circle at 20% 20%, #ffcc80, #cc0000);
-  box-shadow: 0 0 18px rgba(255,100,50,0.7);
+  box-shadow: 0 0 18px rgba(255, 100, 50, 0.7);
 }
 
-/* Message panel – final version */
+/* =========================
+   MESSAGE PANEL
+   ========================= */
 #messages {
   background-color: #050608;
   border-radius: 6px;
   border: 2px solid #1f272b;
   padding: 8px 10px;
-  color: #7CFC00;
+  color: #7cfc00;
   font-family: 'Courier New', monospace;
   font-size: 0.9rem;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
 }
 #messages .title {
   font-size: 0.7rem;
@@ -261,18 +316,16 @@
   overflow-y: auto;
 }
 
-/* Card-style panels for main areas */
-body {
-  background-color: rgba(223, 219, 229, 0.95);
-  margin: 0;
-}
+/* =========================
+   CARD-STYLE PANELS
+   ========================= */
 #customer-orders,
 #game-area,
 .gridcontainer > div {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   padding: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* Section headings with emojis */
@@ -299,9 +352,17 @@ body {
 .wasted h5::before     { content: "🗑️"; }
 #customer-orders h4::before { content: "🧾"; }
 
-/* Room table */
+/* Header typography */
+header h5 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* =========================
+   ROOM TABLE & JOIN FORM
+   ========================= */
 #room-table {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -310,18 +371,19 @@ body {
 }
 #room-table tbody tr {
   cursor: pointer;
-  transition: background 0.12s ease-out, transform 0.12s ease-out;
+  transition:
+    background 0.12s ease-out,
+    transform 0.12s ease-out;
 }
 #room-table tbody tr:hover {
   background: #fff8e1;
   transform: translateY(-1px);
 }
 
-/* Join form */
 #join-form .form-control {
   border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.12);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03) inset;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03) inset;
 }
 #join-form .form-control:focus {
   border-color: #ff7b00;
@@ -334,20 +396,22 @@ body {
   text-transform: uppercase;
 }
 
-/* Room modal */
+/* =========================
+   ROOM MODAL / PIZZAMAN
+   ========================= */
 .modal-content::before {
   opacity: 0.25;
 }
+
 .pizzaman {
   background: #cccccc;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   padding: 1rem 1.25rem;
   max-width: 100%;
   position: relative;
   left: 5vw;
-  /* top: 1vh;  <-- remove this */
-  margin-top: 1vh; /* optional: keep the visual nudge without causing overflow */
+  margin-top: 1vh;
 }
 
 #roomModal .modal-header {
@@ -358,14 +422,16 @@ body {
   line-height: 1.2;
 }
 
-/* Debrief modal */
+/* =========================
+   DEBRIEF MODAL
+   ========================= */
 #debriefModal .modal-dialog {
   max-width: 520px;
 }
 #debriefModal .modal-content {
   border-radius: 16px;
   border: none;
-  box-shadow: 0 16px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
 }
 #debriefModalBody p {
   display: flex;
@@ -375,12 +441,13 @@ body {
 }
 #debriefModalBody p strong {
   font-weight: 600;
-  color: #444;
+  color: #444444;
 }
 #debriefModalBody p span {
   font-family: 'Orbitron', sans-serif;
   font-size: 1rem;
 }
+
 /* Highlight good vs bad */
 #debrief-pizzas-completed,
 #debrief-fulfilled-orders {
@@ -392,16 +459,9 @@ body {
   color: #dc3545;
 }
 
-/* Typography tweaks */
-body {
-  line-height: 1.5;
-}
-header h5 {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-/* Small screens */
+/* =========================
+   RESPONSIVE
+   ========================= */
 @media screen and (max-width: 768px) {
   .gridcontainer > div {
     margin-bottom: 8px;
@@ -413,19 +473,19 @@ header h5 {
   }
 }
 
-/* Oven buttons layout */
-.ovenbuttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Full-page loading overlay */
+/* =========================
+   LOADING OVERLAY
+   ========================= */
 #loading-overlay {
   position: fixed;
   inset: 0;
-  z-index: 3000; /* Above modals, etc. */
-  background: radial-gradient(circle at top, #fff7e6 0%, #f2e3ff 40%, #dfdbe5 100%);
+  z-index: 3000;
+  background: radial-gradient(
+    circle at top,
+    #fff7e6 0%,
+    #f2e3ff 40%,
+    #dfdbe5 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -433,12 +493,10 @@ header h5 {
   opacity: 1;
   transition: opacity 0.3s ease-out;
 }
-
 #loading-overlay.hide {
   opacity: 0;
   pointer-events: none;
 }
-
 #loading-overlay .loading-inner {
   text-align: center;
   padding: 1.5rem 2rem;
@@ -446,72 +504,62 @@ header h5 {
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
-
 .loading-logo {
   max-width: 120px;
   margin-bottom: 0.75rem;
 }
-
 .loading-text {
   margin: 0;
   font-family: "Sigmar", system-ui, sans-serif;
   font-size: 1.1rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #CE0000;
-}
-
-/* Optional subtle pulse on text */
-@keyframes loading-pulse {
-  0%, 100% { opacity: 0.9; transform: translateY(0); }
-  50%      { opacity: 1;   transform: translateY(-2px); }
-}
-
-.loading-text {
+  color: var(--pizza-red);
   animation: loading-pulse 1.4s ease-in-out infinite;
 }
 
-/* Override Primary Buttons to be Orange/Red */
-.btn-primary {
-  background-color: #ff5722 !important;
-  border-color: #e64a19 !important;
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
-/* Override Success Buttons (Submit) to be Basil Green */
-.btn-success {
-  background-color: #4caf50 !important;
-}
-
-/* The Pizza Base */
+/* =========================
+   PIZZA VISUALS
+   ========================= */
 .pizza-visual {
   position: relative;
   width: 60px;
   height: 60px;
-  background-color: #f3e5ab; /* Dough */
+  background-color: #f3e5ab;
   border: 2px solid #e0c097;
   border-radius: 50%;
   margin-right: 10px;
   flex-shrink: 0;
   overflow: hidden;
 }
-
-/* The Sauce Layer */
 .pizza-visual.has-sauce::after {
   content: "";
   position: absolute;
-  top: 5px; left: 5px; right: 5px; bottom: 5px;
-  background-color: #d32f2f; /* Sauce Red */
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  background-color: #d32f2f;
   border-radius: 50%;
   opacity: 0.9;
 }
-
-/* Ingredients */
 .topping-icon {
   position: absolute;
   font-size: 14px;
-  z-index: 2; /* Above sauce */
+  z-index: 2;
 }
-/* Random positions for toppings (simulated) */
 .pos-1 { top: 10%; left: 30%; }
 .pos-2 { top: 30%; left: 60%; }
 .pos-3 { top: 60%; left: 20%; }
@@ -519,25 +567,27 @@ header h5 {
 .pos-5 { top: 35%; left: 35%; }
 .pos-6 { top: 15%; left: 15%; }
 
-/* Make Bootstrap modal backdrop match the loading overlay gradient */
+/* =========================
+   MODAL BACKDROP & SCROLL
+   ========================= */
 .modal-backdrop {
-  background: radial-gradient(circle at top, #fff7e6 0%, #f2e3ff 40%, #dfdbe5 100%) !important;
-  opacity: 0; /* starting state for fade */
+  background: radial-gradient(
+    circle at top,
+    #fff7e6 0%,
+    #f2e3ff 40%,
+    #dfdbe5 100%
+  ) !important;
+  opacity: 0;
   transition: opacity 0.3s ease-out;
-}
-
-/* When the modal is fully shown, backdrop goes to full opacity */
-.modal-backdrop.show {
-  opacity: 1 !important;
-}
-
-.modal-backdrop {
   position: fixed !important;
   height: 100vh !important;
   width: 100vw !important;
   overflow: hidden !important;
 }
+.modal-backdrop.show {
+  opacity: 1 !important;
+}
 
-.modal{
+.modal {
   overflow-y: hidden;
 }
