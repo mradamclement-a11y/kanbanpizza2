@@ -549,18 +549,19 @@ function updateGameState(newState) {
   });
 
   // Built Pizzas
-  var builtDiv = document.getElementById("built-pizzas");
-  builtDiv.innerHTML = "";
-  const isOvenFull = state.oven.lengtfh >= state.max_pizzas_in_oven;
-  const isOvenOn = state.is_oven_on === true; 
-  state.built_pizzas.forEach(function(pizza) {
+var builtDiv = document.getElementById("built-pizzas");
+builtDiv.innerHTML = "";
+
+const isOvenFull = state.oven.length >= state.max_pizzas_in_oven;
+const isOvenOn = state.is_oven_on === true;
+
+state.built_pizzas.forEach(function(pizza) {
     var div = renderPizza(pizza, "");
     var btn = document.createElement("button");
 
-    // Disable if Full OR On
-    if (isOvenFull || isOvenActive) {
+    // Disable if full OR oven is on
+    if (isOvenFull || isOvenOn) {
         btn.className = "btn btn-sm btn-secondary ms-2 disabled";
-        // Update text based on why it's disabled
         btn.innerText = isOvenOn ? "Oven is ON" : "Oven Full";
         btn.disabled = true;
         div.style.opacity = "0.7";
@@ -571,9 +572,11 @@ function updateGameState(newState) {
             socket.emit('move_to_oven', { pizza_id: pizza.pizza_id });
         };
     }
+
     div.appendChild(btn);
     builtDiv.appendChild(div);
-  });
+});
+
 
   // Oven
   var ovenDiv = document.getElementById("oven");
