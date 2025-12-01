@@ -177,10 +177,6 @@
 
             container.appendChild(visual);
 
-            const details = document.createElement("div");
-            details.innerHTML = `<small>${extraLabel}</small>`;
-            container.appendChild(details);
-
             return container;
         },
 
