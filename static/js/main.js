@@ -548,20 +548,24 @@ function updateGameState(newState) {
     poolDiv.appendChild(div);
   });
 
-  // Built Pizzas
-var builtDiv = document.getElementById("built-pizzas");
-builtDiv.innerHTML = "";
+// Built Pizzas
+  var builtDiv = document.getElementById("built-pizzas");
+  builtDiv.innerHTML = "";
+  
+  // FIX 1: Corrected spelling of 'length'
+  const isOvenFull = state.oven.length >= state.max_pizzas_in_oven;
+  
+  // This reads the actual state from the server
+  const isOvenOn = state.is_oven_on === true; 
 
-const isOvenFull = state.oven.length >= state.max_pizzas_in_oven;
-const isOvenOn = state.is_oven_on === true;
-
-state.built_pizzas.forEach(function(pizza) {
+  state.built_pizzas.forEach(function(pizza) {
     var div = renderPizza(pizza, "");
     var btn = document.createElement("button");
 
-    // Disable if full OR oven is on
+    // FIX 2: Changed 'isOvenActive' to 'isOvenOn' to use the specific round state
     if (isOvenFull || isOvenOn) {
         btn.className = "btn btn-sm btn-secondary ms-2 disabled";
+        // Update text based on why it's disabled
         btn.innerText = isOvenOn ? "Oven is ON" : "Oven Full";
         btn.disabled = true;
         div.style.opacity = "0.7";
@@ -572,11 +576,9 @@ state.built_pizzas.forEach(function(pizza) {
             socket.emit('move_to_oven', { pizza_id: pizza.pizza_id });
         };
     }
-
     div.appendChild(btn);
     builtDiv.appendChild(div);
-});
-
+  });
 
   // Oven
   var ovenDiv = document.getElementById("oven");
