@@ -178,7 +178,7 @@
             container.appendChild(visual);
 
             const details = document.createElement("div");
-            details.innerHTML = `<strong>ID: ${pizza.pizza_id.slice(0, 4)}</strong><br><small>${extraLabel}</small>`;
+            details.innerHTML = `<small>${extraLabel}</small>`;
             container.appendChild(details);
 
             return container;
