@@ -11,7 +11,7 @@ Kanban Pizza is a collaborative, multiplayer game that simulates a pizza-making 
     
 - **Real-Time Gameplay**: 
   - Powered by **Flask-SocketIO** for instant state synchronization across all clients.
-  - **Client-Side Prediction**: Local timers and logic reduce server load and latency.
+  - **Local Timer Synchronization**: Clients calculate round and oven times locally to ensure smooth countdowns without hammering the server.
 
 - **Rich User Experience**:
   - **Mobile Optimized**: Smooth drag-and-drop interactions using **SortableJS**.
