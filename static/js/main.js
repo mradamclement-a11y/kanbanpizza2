@@ -196,27 +196,37 @@
         initSortable(el, type, sid = null) {
             if (typeof Sortable === 'undefined') return;
 
+            // COMMON CONFIG FOR SMOOTH MOBILE FEEL
+            const mobileConfig = {
+                animation: 200,
+                forceFallback: true,        // Disables native DnD (Crucial for mobile)
+                fallbackClass: "sortable-fallback", // Uses CSS class for dragged item
+                fallbackOnBody: true,       // Ensures item isn't clipped by overflow
+                delay: 100,                 // Prevents accidental drag when scrolling
+                delayOnTouchOnly: true,
+                onStart: () => Utils.vibrate()
+            };
+
             // Source: Ingredient Pool
             if(el.id === 'prepared-pool') {
                 new Sortable(el, {
+                    ...mobileConfig,
                     group: { name: 'shared', pull: true, put: false },
-                    sort: false,
-                    animation: 150,
-                    onStart: () => Utils.vibrate()
+                    sort: false
                 });
                 return;
             }
 
             // Target: Builders
             new Sortable(el, {
+                ...mobileConfig,
                 group: 'shared',
-                animation: 150,
                 onAdd: (evt) => {
                     const item = evt.item;
                     const ingId = item.dataset.id;
                     const ingType = item.dataset.type;
-
-                    item.remove(); // UI update handled by socket state refresh
+                    
+                    item.remove(); // Remove immediately from DOM, let Socket update UI
 
                     if (type === 'self') {
                         Game.handleDropToBuilder(ingId, ingType);
