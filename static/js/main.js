@@ -1,6 +1,6 @@
 /**
  * PIZZA GAME CLIENT
- * Optimized: Client-side timers (no polling), Modular structure, ES6.
+ * Refactored for modularity, maintainability, and ES6 standards.
  */
 (function() {
     'use strict';
@@ -46,11 +46,7 @@
         dashboardInterval: null,
         lastCFDData: null,
         lastLeadTimeData: null,
-        gameData: {}, // Stores the full game state from server
-
-        // Timer Intervals
-        roundTimerInterval: null,
-        ovenTimerInterval: null
+        gameData: {} // Stores the full game state from server
     };
 
     /* =========================================
@@ -88,7 +84,7 @@
 
             rawLeadTimes.sort((a, b) => a.start_time - b.start_time);
             const labels = rawLeadTimes.map((lt, index) => `Pizza ${index + 1}`);
-
+            
             this.instances.leadTime = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -174,7 +170,7 @@
                     visual.appendChild(span);
                     toppingCount++;
                 };
-
+                
                 for (let i = 0; i < (pizza.ingredients.ham || 0); i++) addTopping("🥓");
                 for (let i = 0; i < (pizza.ingredients.pineapple || 0); i++) addTopping("🍍");
             }
@@ -206,16 +202,16 @@
                 const builderHTML = `
                     <div class="pizza-builder-container">
                         <h5>Builder #${index + 1}</h5>
-                        <div class="d-flex flex-wrap pizza-builder-dropzone"
-                             ondrop="dropToSharedBuilder(event, '${sid}')"
+                        <div class="d-flex flex-wrap pizza-builder-dropzone" 
+                             ondrop="dropToSharedBuilder(event, '${sid}')" 
                              ondragover="allowDrop(event)">
-                             ${players[sid].builder_ingredients.map(ing =>
+                             ${players[sid].builder_ingredients.map(ing => 
                                 `<div class="ingredient">${CONFIG.emojis.ingredients[ing.type] || ing.type}</div>`
                              ).join('')}
                         </div>
                         <button class="btn btn-primary btn-custom mt-2" onclick="triggerBuild('${sid}')">Submit Pizza</button>
                     </div>`;
-
+                
                 colDiv.innerHTML = builderHTML;
                 container.appendChild(colDiv);
 
@@ -267,38 +263,18 @@
             this.updateRoomLabels(State.myRoom || "Unknown", Object.keys(newState.players).length);
             this.updateVisibility();
 
-            // 1. Phases & Round Timer Sync
+            // 1. Phases
             const gameArea = document.getElementById("game-area");
             const startBtn = document.getElementById("start-round");
-
             if (newState.current_phase === "round") {
                 gameArea.style.display = "block";
                 startBtn.style.display = "none";
-                // Start Round Timer
-                if (newState.round_start_time) {
-                    Game.startRoundTimer(newState.round_start_time, newState.round_duration, 'round');
-                }
-            } else if (newState.current_phase === "debrief") {
-                gameArea.style.display = "none";
-                startBtn.style.display = "inline-block";
-                // Start Debrief Timer
-                if (newState.debrief_start_time) {
-                    Game.startRoundTimer(newState.debrief_start_time, newState.debrief_duration, 'debrief');
-                }
             } else {
                 gameArea.style.display = "none";
                 startBtn.style.display = "inline-block";
-                Game.stopRoundTimer(); // Waiting phase
             }
 
-            // 2. Oven Timer Sync
-            if (newState.oven_on && newState.oven_timer_start) {
-                Game.startOvenTimer(newState.oven_timer_start);
-            } else {
-                Game.stopOvenTimer();
-            }
-
-            // 3. Orders (Round 3)
+            // 2. Orders (Round 3)
             const ordersDiv = document.getElementById("customer-orders");
             if (newState.round === 3 && newState.current_phase === "round") {
                 ordersDiv.style.display = "block";
@@ -328,7 +304,7 @@
                 document.getElementById("order-count").innerText = "0";
             }
 
-            // 4. Ingredient Pool
+            // 3. Ingredient Pool
             const poolDiv = document.getElementById("prepared-pool");
             poolDiv.innerHTML = "";
             newState.prepared_ingredients.forEach(item => {
@@ -339,7 +315,7 @@
                 div.dataset.type = item.type;
                 div.innerText = CONFIG.emojis.ingredients[item.type] || item.type;
                 div.addEventListener("dragstart", Game.handleDragStart);
-
+                
                 // Touch support
                 if ('ontouchstart' in window) {
                     div.addEventListener("touchstart", (ev) => {
@@ -351,7 +327,7 @@
                 poolDiv.appendChild(div);
             });
 
-            // 5. Built Pizzas (Queue)
+            // 4. Built Pizzas (Queue)
             const builtDiv = document.getElementById("built-pizzas");
             builtDiv.innerHTML = "";
             const isOvenFull = newState.oven.length >= newState.max_pizzas_in_oven;
@@ -360,7 +336,7 @@
             newState.built_pizzas.forEach(pizza => {
                 const div = this.createPizzaElement(pizza, "");
                 const btn = document.createElement("button");
-
+                
                 if (isOvenFull || isOvenOn) {
                     btn.className = "btn btn-sm btn-secondary ms-2 disabled";
                     btn.innerText = isOvenOn ? "Oven is ON" : "Oven Full";
@@ -375,7 +351,7 @@
                 builtDiv.appendChild(div);
             });
 
-            // 6. Oven & Completed & Wasted
+            // 5. Oven & Completed & Wasted
             const updateList = (elementId, list, extra) => {
                 const el = document.getElementById(elementId);
                 el.innerHTML = "";
@@ -407,7 +383,7 @@
             ev.preventDefault();
             const ingredient_id = ev.dataTransfer.getData("ingredient_id");
             const ingredient_type = ev.dataTransfer.getData("ingredient_type");
-
+            
             State.socket.emit('take_ingredient', { ingredient_id: ingredient_id });
             Utils.vibrate();
 
@@ -435,55 +411,6 @@
 
         toggleOven(state) {
             State.socket.emit('toggle_oven', { state: state });
-        },
-
-        /* ---- TIMERS (Performance Fix) ---- */
-        startRoundTimer(startTime, duration, phase) {
-            if (State.roundTimerInterval) clearInterval(State.roundTimerInterval);
-
-            const timerEl = document.getElementById("timer");
-            const update = () => {
-                const now = Date.now() / 1000; // Convert MS to Seconds
-                const elapsed = now - startTime;
-                const remaining = Math.max(0, Math.ceil(duration - elapsed));
-
-                const label = phase === 'debrief' ? "DEBRIEF" : "Round Time";
-                timerEl.innerText = `${label}:\n${remaining} sec`;
-
-                if (remaining <= 0) {
-                    clearInterval(State.roundTimerInterval);
-                    State.roundTimerInterval = null;
-                }
-            };
-
-            update(); // Run immediately
-            State.roundTimerInterval = setInterval(update, 1000);
-        },
-
-        stopRoundTimer() {
-            if (State.roundTimerInterval) clearInterval(State.roundTimerInterval);
-            State.roundTimerInterval = null;
-            document.getElementById("timer").innerText = "Round Time:";
-        },
-
-        startOvenTimer(startTime) {
-            if (State.ovenTimerInterval) clearInterval(State.ovenTimerInterval);
-
-            const ovenTimerEl = document.getElementById("oven-timer");
-            const update = () => {
-                const now = Date.now() / 1000;
-                const elapsed = Math.floor(now - startTime);
-                ovenTimerEl.innerText = "Oven Time:\n" + elapsed + " sec";
-            };
-
-            update();
-            State.ovenTimerInterval = setInterval(update, 1000);
-        },
-
-        stopOvenTimer() {
-            if (State.ovenTimerInterval) clearInterval(State.ovenTimerInterval);
-            State.ovenTimerInterval = null;
-            document.getElementById("oven-timer").innerText = "Oven Time:";
         }
     };
 
@@ -507,7 +434,7 @@
 
         s.on('disconnect', () => UI.updateMessage("Disconnected. Attempting to reconnect..."));
         s.on('reconnect', () => UI.updateMessage("Reconnected to room " + State.myRoom));
-
+        
         s.on('join_error', (data) => {
             const isQrOpen = document.getElementById('qrAuthModal')?.classList.contains('show');
             if (isQrOpen) {
@@ -533,7 +460,7 @@
                     const count = data.rooms[room];
                     const joinUrl = `${window.location.origin}/?room=${encodeURIComponent(room)}`;
                     const qrApiUrl = `${CONFIG.api.qr}${encodeURIComponent(joinUrl)}`;
-
+                    
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td style="vertical-align:middle;"><strong>${room}</strong></td>
@@ -548,7 +475,7 @@
             const scoresDiv = document.getElementById('high-scores');
             scoresDiv.innerHTML = '<h3>Top Scores</h3>';
             let tableHTML = '<table class="table table-bordered"><thead><tr><th>Round</th><th>1st</th><th>2nd</th><th>3rd</th></tr></thead><tbody>';
-
+            
             for (let r = 1; r <= 3; r++) {
                 tableHTML += `<tr><td>Round ${r}</td>`;
                 for (let rank = 1; rank <= 3; rank++) {
@@ -580,16 +507,13 @@
         });
 
         s.on('round_ended', (result) => {
-            Game.stopRoundTimer();
-            Game.stopOvenTimer();
-
             // Fill Debrief Modal
             document.getElementById("debrief-pizzas-completed").innerText = result.completed_pizzas_count;
             document.getElementById("debrief-pizzas-wasted").innerText = result.wasted_pizzas_count;
             document.getElementById("debrief-pizzas-unsold").innerText = result.unsold_pizzas_count;
             document.getElementById("debrief-ingredients-left").innerText = result.ingredients_left_count || 0;
             document.getElementById("debrief-score").innerText = result.score;
-
+            
             // Round 3 Specifics
             const r3Display = State.gameData.round === 3 ? "block" : "none";
             ["fulfilled-orders", "remaining-orders", "unmatched-pizzas"].forEach(id => document.getElementById(id).style.display = r3Display);
@@ -607,7 +531,7 @@
             const content = CONFIG.debrief[State.gameData.round] || CONFIG.debrief[1];
             document.getElementById("debrief-question").innerText = content.question;
             document.getElementById("debrief-quote").innerText = content.quote;
-
+            
             new bootstrap.Modal(document.getElementById('debriefModal')).show();
             if (result.score > 0) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 
@@ -620,7 +544,7 @@
 
         s.on('game_reset', (state) => {
             UI.updateMessage("Round reset. Ready for a new round.");
-            Game.stopRoundTimer();
+            document.getElementById("timer").innerText = "Round Time:";
             bootstrap.Modal.getInstance(document.getElementById('debriefModal'))?.hide();
             UI.refreshGameState(state);
         });
@@ -632,13 +556,13 @@
         s.on('oven_error', (d) => UI.updateMessage("Oven Error: " + d.message));
         s.on('pizza_moved_to_oven', (p) => UI.updateMessage("Pizza moved to oven: " + p.pizza_id));
         s.on('clear_shared_builder', () => UI.renderSharedBuilders(State.gameData.players));
-
+        
         s.on('oven_toggled', (data) => {
             const isOn = (data.state === "on");
             UI.updateMessage(isOn ? "Oven turned ON." : "Oven turned OFF.");
             const ovenContainer = document.getElementById("oven-container");
             isOn ? ovenContainer.classList.add("oven-active") : ovenContainer.classList.remove("oven-active");
-
+            
             const btnOn = document.getElementById("oven-on");
             const btnOff = document.getElementById("oven-off");
             if (btnOn && btnOff) {
@@ -646,14 +570,7 @@
                 btnOff.disabled = !isOn;
             }
             State.gameData.is_oven_on = isOn;
-            // refreshGameState will be triggered by server state update usually,
-            // but we ensure logic flows if pure toggle event comes first
-            if (isOn) {
-                // Approximate start if packet delayed, real sync happens on game_state
-                Game.startOvenTimer(Date.now() / 1000);
-            } else {
-                Game.stopOvenTimer();
-            }
+            UI.refreshGameState(State.gameData);
         });
 
         s.on('new_order', (order) => {
@@ -678,6 +595,14 @@
             UI.updateMessage(data.message);
             new bootstrap.Modal(document.getElementById('roomModal'), { backdrop: 'static', keyboard: false }).show();
             s.emit('request_room_list');
+        });
+
+        s.on('time_response', (data) => {
+            const timer = document.getElementById("timer");
+            if (data.phase === "debrief") timer.innerText = "DEBRIEF:\n" + data.roundTimeRemaining + " sec";
+            else if (data.phase === "round") timer.innerText = "Round Time:\n" + data.roundTimeRemaining + " sec";
+            else timer.innerText = "Round Time:";
+            document.getElementById("oven-timer").innerText = "Oven Time:\n" + data.ovenTime + " sec";
         });
 
         // Facilitator Dashboard
@@ -712,7 +637,7 @@
        ========================================= */
     document.addEventListener("DOMContentLoaded", () => {
         setupSocketListeners();
-
+        
         // 1. URL Params (QR Code)
         const roomParam = new URLSearchParams(window.location.search).get('room');
         if (roomParam) {
@@ -735,14 +660,13 @@
             const rInput = document.getElementById("room-input");
             const pInput = document.getElementById("password-input");
             const fb = document.getElementById("room-input-feedback");
-
+            
             if (!rInput.value.trim() || !pInput.value.trim()) {
                 rInput.classList.add("is-invalid");
                 fb.textContent = "Fields cannot be empty.";
                 return;
             }
 
-            // Note: Profanity check still here for UX, but security check should be on backend too
             if (await Utils.checkProfanity(rInput.value.trim())) {
                 rInput.classList.add("is-invalid");
                 fb.textContent = "Appropriate language only, please.";
@@ -758,7 +682,7 @@
         document.getElementById("oven-on").addEventListener("click", () => Game.toggleOven("on"));
         document.getElementById("oven-off").addEventListener("click", () => Game.toggleOven("off"));
         document.getElementById("start-round").addEventListener("click", () => State.socket.emit('start_round', {}));
-
+        
         // 4. Modals / Instructions
         const modal = new bootstrap.Modal(document.getElementById("modal"));
         document.querySelectorAll("#instructions-btn, #instructions-btn0").forEach(btn => btn?.addEventListener("click", () => modal.show()));
@@ -767,7 +691,7 @@
         // 5. Chart Tabs
         document.getElementById('leadtime-tab')?.addEventListener('shown.bs.tab', () => { if(State.lastLeadTimeData) Charts.renderLeadTime(State.lastLeadTimeData); });
         document.getElementById('cfd-tab')?.addEventListener('shown.bs.tab', () => { if(State.lastCFDData) Charts.renderCFD(State.lastCFDData); });
-
+        
         // 6. Touch Support (Self-contained builder touch)
         const myBuilder = document.getElementById("pizza-builder");
         if ('ontouchstart' in window && myBuilder) {
@@ -793,7 +717,8 @@
             });
         }
 
-        // --- HEARTBEAT REMOVED (Fixed Performance) ---
+        // Heartbeat
+        setInterval(() => State.socket.emit('time_request'), 1000);
     });
 
     /* =========================================
@@ -806,7 +731,7 @@
     window.dropToBuilder = Game.handleDropToBuilder;
     window.dropToSharedBuilder = Game.handleDropToShared;
     window.triggerBuild = (sid) => State.socket.emit('build_pizza', { player_sid: sid });
-
+    
     window.cancelQrJoin = () => {
         window.history.pushState({}, document.title, "/");
         State.pendingQrRoom = null;
@@ -820,7 +745,7 @@
         const facEl = document.getElementById('facilitatorModal');
         if (!facEl) return;
         bootstrap.Modal.getOrCreateInstance(facEl).show();
-
+        
         State.socket.emit('request_admin_dashboard');
         if (State.dashboardInterval) clearInterval(State.dashboardInterval);
         State.dashboardInterval = setInterval(() => {
