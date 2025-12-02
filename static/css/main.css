@@ -591,3 +591,34 @@ header h5 {
 .modal {
   overflow-y: hidden;
 }
+/* Add to main.css */
+
+/* 1. Prevent browser scrolling when touching an ingredient */
+.ingredient {
+  touch-action: none; 
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 2. Style the item being dragged (The one under your finger) */
+.sortable-fallback {
+  opacity: 1 !important;
+  background: #fff;
+  border: 2px solid #ce0000;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+  transform: scale(1.1); /* Pop effect */
+  cursor: grabbing;
+  z-index: 9999;
+}
+
+/* 3. Style the empty space left behind */
+.sortable-ghost {
+  opacity: 0.3;
+  background: #e0e0e0;
+  border: 1px dashed #999;
+}
+
+/* 4. Hide the original item while dragging (optional, keeps it clean) */
+.sortable-chosen {
+  background: #f0f0f0;
+}
