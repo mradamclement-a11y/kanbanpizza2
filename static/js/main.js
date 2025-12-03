@@ -49,7 +49,8 @@
                 pop: '/static/sounds/pop.mp3',
                 cash: '/static/sounds/cash.mp3',
                 alarm: '/static/sounds/alarm.mp3',
-                order: '/static/sounds/alarm.mp3'
+                order: '/static/sounds/alarm.mp3',
+                oven_hum: '/static/sounds/oven.mp3'
             };
 
             for (const [key, path] of Object.entries(soundFiles)) {
@@ -65,6 +66,25 @@
                 this.sounds[key].play();
             }
         }
+
+ manageOvenSound(shouldPlay) {
+            const sound = this.sounds['oven_hum'];
+            if (!sound || sound.state() !== 'loaded') return;
+
+            if (shouldPlay) {
+                // Only start if not already playing to prevent echo/layering
+                if (!sound.playing()) {
+                    sound.fade(0, 0.3, 1000); // Smooth fade in
+                    sound.play();
+                }
+            } else {
+                if (sound.playing()) {
+                    sound.fade(0.3, 0, 500); // Smooth fade out
+                    setTimeout(() => sound.stop(), 500);
+                }
+            }
+    }
+        
     };
 
     /* =========================================
@@ -307,6 +327,16 @@
                 startBtn.style.display = "inline-block";
             }
 
+            if (newState.oven_on) {
+                if (newState.oven_timer_start) Game.startOvenTimer(newState.oven_timer_start);
+                // START SOUND
+                Audio.manageOvenSound(true); 
+            } else {
+                Game.stopOvenTimer();
+                // STOP SOUND
+                Audio.manageOvenSound(false);
+            }
+
             // 2. Orders (Round 3)
             const ordersDiv = document.getElementById("customer-orders");
             if (newState.round === 3 && newState.current_phase === "round") {
@@ -492,6 +522,8 @@
         });
 
         s.on('round_ended', (result) => {
+            Game.stopOvenTimer();
+            Audio.manageOvenSound(false);
             document.getElementById("debrief-pizzas-completed").innerText = result.completed_pizzas_count;
             document.getElementById("debrief-pizzas-wasted").innerText = result.wasted_pizzas_count;
             document.getElementById("debrief-pizzas-unsold").innerText = result.unsold_pizzas_count;
@@ -548,6 +580,7 @@
             const ovenContainer = document.getElementById("oven-container");
             isOn ? ovenContainer.classList.add("oven-active") : ovenContainer.classList.remove("oven-active");
             State.gameData.is_oven_on = isOn;
+            Audio.manageOvenSound(isOn); 
         });
 
         s.on('new_order', (order) => { Audio.play('order'); UI.updateMessage("New Order: " + order.type); State.gameData.customer_orders.push(order); UI.refreshGameState(State.gameData); });
