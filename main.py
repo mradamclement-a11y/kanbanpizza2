@@ -7,6 +7,7 @@ import random
 from flask_compress import Compress
 from flask_sqlalchemy import SQLAlchemy
 import os
+import redis
 
 def get_game_state(room):
     """Fetch game state from Redis"""
@@ -896,6 +897,7 @@ def on_request_admin_dashboard():
     
 if __name__ == '__main__':
     socketio.run(app)
+
 
 
 
