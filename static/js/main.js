@@ -65,9 +65,9 @@
             if (this.sounds[key] && this.sounds[key].state() === 'loaded') {
                 this.sounds[key].play();
             }
-        }
+        },
 
- manageOvenSound(shouldPlay) {
+        manageOvenSound(shouldPlay) {
             const sound = this.sounds['oven_hum'];
             if (!sound || sound.state() !== 'loaded') return;
 
