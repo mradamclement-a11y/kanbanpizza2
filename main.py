@@ -310,7 +310,7 @@ def on_time_request():
     game_state = get_game_state(room)
     if not game_state: return
 
-    update_player_activity(sid)
+    #update_player_activity(sid)
     current_time = time.time()
     
     # Fail-safe check for timer expiry
@@ -353,6 +353,7 @@ def on_time_request():
 @socketio.on('prepare_ingredient')
 def on_prepare_ingredient(data):
     room = get_room_for_sid(request.sid)
+    update_player_activity(request.sid)
     if not room: return
     game_state = get_game_state(room)
     if not game_state or game_state["current_phase"] != "round": return
@@ -753,6 +754,7 @@ def uptime_status():
 
 if __name__ == '__main__':
     socketio.run(app)
+
 
 
 
