@@ -7,4 +7,6 @@ psycopg2-binary
 flask_sqlalchemy
 gunicorn
 eventlet
+redis
+
 
