@@ -640,6 +640,47 @@ def reset_round(room):
     # Tell clients the round has been reset
     socketio.emit('game_reset', sanitize_game_state_for_emit(game_state), room=room)
 
+@socketio.on("request_admin_dashboard")
+def handle_admin_dashboard():
+    keys = r.keys("room:*")
+    rooms = []
+
+    for key in keys:
+        room_name = key.split("room:")[1]
+        game_state = get_game_state(room_name)
+        if not game_state:
+            continue
+
+        # calculate values for dashboard
+        current_phase = game_state.get("current_phase", "waiting")
+        now = time.time()
+
+        # round time left
+        if current_phase == "round" and game_state.get("round_start_time"):
+            time_left = max(
+                0,
+                int(game_state["round_duration"] - (now - game_state["round_start_time"]))
+            )
+        elif current_phase == "debrief" and game_state.get("debrief_start_time"):
+            time_left = max(
+                0,
+                int(game_state["debrief_duration"] - (now - game_state["debrief_start_time"]))
+            )
+        else:
+            time_left = 0
+
+        rooms.append({
+            "room": room_name,
+            "phase": current_phase,
+            "time_left": time_left,
+            "players": len(game_state["players"]),
+            "completed": len(game_state["completed_pizzas"]),
+            "wasted": len(game_state["wasted_pizzas"]),
+            "oven": len(game_state["oven"]),
+            "built": len(game_state["built_pizzas"]),
+        })
+
+    socketio.emit("admin_dashboard_update", {"rooms": rooms})
 
 @app.route('/health')
 def health_check():
@@ -697,6 +738,7 @@ def uptime_status():
 
 if __name__ == '__main__':
     socketio.run(app)
+
 
 
 
