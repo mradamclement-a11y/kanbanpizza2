@@ -749,22 +749,40 @@
     };
 
     window.closeFacilitator = () => {
-        // 1. Hide Facilitator Modal
         const facEl = document.getElementById('facilitatorModal');
         const facModal = bootstrap.Modal.getInstance(facEl);
-        if (facModal) facModal.hide();
 
-        // 2. Stop polling
+        // 1. Stop the dashboard polling immediately
         if (State.dashboardInterval) {
             clearInterval(State.dashboardInterval);
             State.dashboardInterval = null;
         }
 
-        // 3. Show Room/Login Modal (Return to start state)
-        const roomModalEl = document.getElementById('roomModal');
-        // Use getOrCreateInstance to prevent duplicates or errors if it was previously hidden
-        const roomModal = bootstrap.Modal.getOrCreateInstance(roomModalEl, { backdrop: 'static', keyboard: false });
-        roomModal.show();
+        // 2. Define the logic to show the Room Modal
+        const showLoginScreen = () => {
+            const roomModalEl = document.getElementById('roomModal');
+            // Ensure we get the instance with the specific 'static' backdrop config
+            const roomModal = bootstrap.Modal.getOrCreateInstance(roomModalEl, { 
+                backdrop: 'static', 
+                keyboard: false 
+            });
+            roomModal.show();
+        };
+
+        // 3. Handle the transition
+        if (facModal && facEl.classList.contains('show')) {
+            // Listener: Wait for Facilitator modal to completely disappear
+            facEl.addEventListener('hidden.bs.modal', function onHidden() {
+                showLoginScreen();
+                // Clean up listener to prevent memory leaks or double-firing
+                facEl.removeEventListener('hidden.bs.modal', onHidden);
+            }, { once: true });
+
+            facModal.hide();
+        } else {
+            // Fallback: If Facilitator wasn't open, just show login immediately
+            showLoginScreen();
+        }
     };
 
 })();
