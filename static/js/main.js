@@ -48,7 +48,8 @@
                 trash: '/static/sounds/trash.mp3',
                 pop: '/static/sounds/pop.mp3',
                 cash: '/static/sounds/cash.mp3',
-                alarm: '/static/sounds/alarm.mp3'
+                alarm: '/static/sounds/alarm.mp3',
+                order: '/static/sounds/alarm.mp3'
             };
 
             for (const [key, path] of Object.entries(soundFiles)) {
@@ -549,7 +550,7 @@
             State.gameData.is_oven_on = isOn;
         });
 
-        s.on('new_order', (order) => { Audio.play('ding'); UI.updateMessage("New Order: " + order.type); State.gameData.customer_orders.push(order); UI.refreshGameState(State.gameData); });
+        s.on('new_order', (order) => { Audio.play('order'); UI.updateMessage("New Order: " + order.type); State.gameData.customer_orders.push(order); UI.refreshGameState(State.gameData); });
         s.on('order_fulfilled', (data) => { Audio.play('cash'); UI.updateMessage("Fulfilled: " + data.order_id); const el = document.querySelector(`[data-order-id="${data.order_id}"]`); if (el) el.remove(); });
 
         s.on('game_state_update', (update) => {
