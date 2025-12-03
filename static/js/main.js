@@ -446,7 +446,7 @@
 
         toggleOven(state) {
             State.socket.emit('toggle_oven', { state: state });
-        }
+        },
         
         startOvenTimer(startTimestamp) {
             // Legacy hook – server heartbeat now controls the display,
