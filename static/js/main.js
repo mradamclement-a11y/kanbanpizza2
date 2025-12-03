@@ -628,6 +628,26 @@
     document.addEventListener("DOMContentLoaded", () => {
         Audio.init();
         setupSocketListeners();
+        const facEl = document.getElementById('facilitatorModal');
+        if (facEl) {
+            facEl.addEventListener('hidden.bs.modal', () => {
+                // 1. Stop Polling
+                if (State.dashboardInterval) {
+                    clearInterval(State.dashboardInterval);
+                    State.dashboardInterval = null;
+                }
+
+                // 2. Restore Room/Login Modal
+                // We use getOrCreateInstance to ensure it initializes correctly if it was fully disposed
+                const roomModalEl = document.getElementById('roomModal');
+                const roomModal = bootstrap.Modal.getOrCreateInstance(roomModalEl, { 
+                    backdrop: 'static', 
+                    keyboard: false 
+                });
+                roomModal.show();
+            });
+        }
+        
 
         // RESTORED: Heartbeat (every 1s) to drive Python logic (orders) and display timers
         State.heartbeat = setInterval(() => State.socket.emit('time_request'), 1000);
