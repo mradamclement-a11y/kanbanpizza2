@@ -721,68 +721,38 @@
             });
     }
 
-    // --- Public Window Functions ---
+
+// --- Public Window Functions ---
 
     window.prepareIngredient = (type) => State.socket.emit('prepare_ingredient', { ingredient_type: type });
     window.triggerBuild = (sid) => State.socket.emit('build_pizza', { player_sid: sid });
     window.cancelQrJoin = () => { window.location.href = "/"; };
 
     window.openFacilitator = () => {
-        // 1. Hide the Login Modal
+        // 1. Hide the Room Modal
         const roomModalEl = document.getElementById('roomModal');
-        const roomModal = bootstrap.Modal.getInstance(roomModalEl) || new bootstrap.Modal(roomModalEl);
-        roomModal.hide();
+        const roomModal = bootstrap.Modal.getInstance(roomModalEl);
+        if (roomModal) roomModal.hide();
 
         // 2. Show the Facilitator Modal
         const facEl = document.getElementById('facilitatorModal');
         const facModal = new bootstrap.Modal(facEl);
         facModal.show();
 
-        // 3. Fetch Data
-        fetchSystemHealth(); // Fetch /health data
-        
-        // 4. Start Live Dashboard polling
+        // 3. Fetch Data & Start Polling
+        fetchSystemHealth();
         State.socket.emit('request_admin_dashboard');
-        // Clear existing interval just in case
+        
+        // Clear any existing interval to be safe
         if (State.dashboardInterval) clearInterval(State.dashboardInterval);
         State.dashboardInterval = setInterval(() => State.socket.emit('request_admin_dashboard'), 3000);
     };
 
     window.closeFacilitator = () => {
+        // Just hide the modal. The event listener handles the rest.
         const facEl = document.getElementById('facilitatorModal');
         const facModal = bootstrap.Modal.getInstance(facEl);
-
-        // 1. Stop the dashboard polling immediately
-        if (State.dashboardInterval) {
-            clearInterval(State.dashboardInterval);
-            State.dashboardInterval = null;
-        }
-
-        // 2. Define the logic to show the Room Modal
-        const showLoginScreen = () => {
-            const roomModalEl = document.getElementById('roomModal');
-            // Ensure we get the instance with the specific 'static' backdrop config
-            const roomModal = bootstrap.Modal.getOrCreateInstance(roomModalEl, { 
-                backdrop: 'static', 
-                keyboard: false 
-            });
-            roomModal.show();
-        };
-
-        // 3. Handle the transition
-        if (facModal && facEl.classList.contains('show')) {
-            // Listener: Wait for Facilitator modal to completely disappear
-            facEl.addEventListener('hidden.bs.modal', function onHidden() {
-                showLoginScreen();
-                // Clean up listener to prevent memory leaks or double-firing
-                facEl.removeEventListener('hidden.bs.modal', onHidden);
-            }, { once: true });
-
-            facModal.hide();
-        } else {
-            // Fallback: If Facilitator wasn't open, just show login immediately
-            showLoginScreen();
-        }
+        if (facModal) facModal.hide();
     };
 
 })();
