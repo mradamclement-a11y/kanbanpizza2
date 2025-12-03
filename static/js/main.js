@@ -471,6 +471,8 @@
     function setupSocketListeners() {
         const s = State.socket;
 
+        
+
         s.on('connect', () => {
             if (State.pendingQrRoom) return;
             if (State.isInitialConnect) {
@@ -679,5 +681,21 @@
         State.socket.emit('request_admin_dashboard');
         State.dashboardInterval = setInterval(() => State.socket.emit('request_admin_dashboard'), 3000);
     };
+    window.closeFacilitator = () => {
+    const facModal = bootstrap.Modal.getInstance(document.getElementById('facilitatorModal'));
+    if (facModal) facModal.hide();
+
+    // Stop the dashboard polling
+    if (State.dashboardInterval) {
+        clearInterval(State.dashboardInterval);
+        State.dashboardInterval = null;
+    }
+
+    // Return to room form
+    const roomModalEl = document.getElementById('roomModal');
+    const roomModal = new bootstrap.Modal(roomModalEl, { backdrop: 'static', keyboard: false });
+    roomModal.show();
+};
+
 
 })();
