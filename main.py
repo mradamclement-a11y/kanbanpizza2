@@ -22,7 +22,15 @@ redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379")
 r = redis.from_url(redis_url, decode_responses=True)
 
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', ping_timeout=60, ping_interval=25)
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='eventlet',
+    message_queue=redis_url,   # <--- this is what lets multiple workers share events
+    ping_timeout=60,
+    ping_interval=25
+)
+
 
 ROOM_TIMEOUT = 1800  # 30 minutes
 PLAYER_TIMEOUT = 300  # 5 minutes
@@ -644,13 +652,14 @@ def uptime_status():
         "Content-Type": "application/json"
     }
 
-    r = requests.post(url, json=payload, headers=headers)
-    data = r.json()
+    resp  = requests.post(url, json=payload, headers=headers)
+    data = resp.json()
 
     return jsonify(data)
 
 if __name__ == '__main__':
     socketio.run(app)
+
 
 
 
