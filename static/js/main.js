@@ -504,7 +504,7 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `<td style="vertical-align:middle;"><strong>${room}</strong></td>
                         <td style="vertical-align:middle;"><span class="badge ${count >= 5 ? 'bg-danger' : 'bg-success'}">${count}/5 Players</span></td>
-                        <td><img src="${qrApiUrl}" class="img-thumbnail" style="width:80px;height:80px;cursor:pointer;" onclick="window.open('${qrApiUrl.replace('100x100','400x400')}')"></td>`;
+                        <td><img alt="QR Code for Room - ${room}" src="${qrApiUrl}" class="img-thumbnail" style="width:80px;height:80px;cursor:pointer;" onclick="window.open('${qrApiUrl.replace('100x100','400x400')}')"></td>`;
                     tbody.appendChild(row);
                 });
             }
