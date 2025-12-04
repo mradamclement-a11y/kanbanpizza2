@@ -686,22 +686,33 @@ header h5 {
 
 /* Make Active Rooms + High Scores area use full height on mobile */
 @media (max-width: 768px) {
-  /* Only affect the Room modal */
+
+  /* Make the Room modal fill the viewport */
+  #roomModal .modal-dialog {
+    margin: 0;               /* remove top/bottom gap */
+    max-width: 100%;
+    height: 100vh;           /* full viewport height */
+  }
+
   #roomModal .modal-content {
+    height: 100%;            /* fill dialog */
+    max-height: none !important;
     display: flex;
     flex-direction: column;
-    max-height: 95vh;   /* keep your overall cap */
   }
 
-  #roomModal .modal-header {
-    flex-shrink: 0;
+  #roomModal .modal-header,
+  #roomModal .modal-footer {
+    flex-shrink: 0;          /* keep natural height */
   }
 
+  /* Main scroll area for Active Rooms + High Scores */
   #roomModal .modal-body {
-    flex: 1;            /* take remaining height */
+    flex: 1;
     min-height: 0;
-    max-height: none;   /* override the global 75vh limit */
-    overflow-y: auto;   /* single scrollable area */
+    max-height: none !important;  /* override global 75vh */
+    overflow-y: auto;             /* single scrollable region */
   }
 }
+
 
