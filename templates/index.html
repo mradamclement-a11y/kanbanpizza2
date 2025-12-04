@@ -166,12 +166,12 @@ color:#CE0000;
 </div>
 
 <!-- QR/Link Join Modal -->
-<div class="modal fade" id="qrAuthModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="qrAuthModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-modal="true" aria-labelledby="authtitle">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-warning text-white">
         <!-- We will inject the Room Name here via JS -->
-        <h5 class="modal-title">Join Room: <span id="qr-room-name-display" class="fw-bold">...</span></h5>
+        <h5 id="authtitle" class="modal-title">Join Room: <span id="qr-room-name-display" class="fw-bold">...</span></h5>
       </div>
       <div class="modal-body">
         <p>Please enter the password to join this room.</p>
@@ -285,7 +285,10 @@ color:#CE0000;
 
 	
 
-  <div class="modal" tabindex="-1" id="roomModal">
+  <div class="modal" tabindex="-1" id="roomModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="roomModalLabel">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <!-- Replaced #forkongithub with new ribbon -->
@@ -316,7 +319,7 @@ color:#CE0000;
         <div class="modal-header">
           <div class="col-md-3" style="margin-right:1vw;">
             <img alt="github logo" class="logocat" src="https://raw.githubusercontent.com/adamclement-exe/kanbanpizza/98ff29c314b1c214aa5be0df663317030fd13a03/static/logo.svg" style="max-width:6vw"/>
-            <h2 class="modal-title">
+            <h2 class="modal-title" id="roomModalLabel">
               Welcome to<br/>Kanban Pizza!</h2>
 			  <button id="instructions-btn0" class="btn btn-info btn-custom">Instructions</button>
 		  
@@ -374,7 +377,10 @@ color:#CE0000;
                 </table>
 
                 <!-- Keep the Generic QR Modal (Add this at bottom of index.html if not there) -->
-                <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+                <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false"
+				     role="dialog"
+				     aria-modal="true"
+				     aria-labelledby="qrAuthModalLabel">
                   <div class="modal-dialog modal-sm text-center">
                     <div class="modal-content">
                       <div class="modal-header">
@@ -423,13 +429,16 @@ color:#CE0000;
     </div>
   </div>
 
-  <div class="modal fade" tabindex="-1" id="modal">
+  <div class="modal fade" tabindex="-1" id="modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="instructionsModalLabel">
   <div class="modal-dialog modal-fullscreen">
     <div class="modal-content">
       
       <!-- HEADER -->
       <div class="modal-header bg-warning text-dark"> <!-- Added color for flair -->
-        <h5 class="modal-title">🍕 How to Play Kanban Pizza</h5>
+        <h5 id="instructionsModalLabel" class="modal-title">🍕 How to Play Kanban Pizza</h5>
         <button type="button" class="btn-close" id="modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
@@ -598,12 +607,12 @@ color:#CE0000;
   </div>
 </div>
 
-<div class="modal fade" id="debriefModal" tabindex="-1">
+<div class="modal fade" id="debriefModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="debrieftitle">
     <!-- Added modal-xl for extra width -->
     <div class="modal-dialog modal-xl">
       <div class="modal-content p-3">
         <div class="modal-header">
-          <h5 class="modal-title">End of Round Summary</h5>
+          <h5 id="debreiftitle" class="modal-title">End of Round Summary</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body" id="debriefModalBody">
@@ -680,11 +689,11 @@ color:#CE0000;
 
 	
 	<!-- Facilitator Dashboard Modal -->
-<div class="modal fade" id="facilitatorModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" role="dialog" aria-modal="true" aria-labelledby="factitle" id="facilitatorModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header  bg-warning text-dark">
-        <h5 class="modal-title">🕵️ Facilitator Dashboard</h5>
+        <h5 id="factitle" class="modal-title">🕵️ Facilitator Dashboard</h5>
         <button type="button" class="btn-close btn-close-white" aria-label="Close"  onclick="closeFacilitator()"></button>
       </div>
       <div class="modal-body">
@@ -788,6 +797,7 @@ color:#CE0000;
   <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91c10bf55880b05e',t:'MTc0MTI1NTY1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
+
 
 
 
