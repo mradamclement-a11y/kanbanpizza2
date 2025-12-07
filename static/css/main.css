@@ -651,9 +651,7 @@ header h5 {
   opacity: 1 !important;
 }
 
-.modal {
-  overflow-y: auto;   /* allow the full modal to scroll */
-}
+
 
 /* Add to main.css */
 
