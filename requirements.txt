@@ -1,14 +1,9 @@
 Flask~=3.1.0
-Flask-SocketIO~=5.5.1
+Flask-SocketIO~=5.6.1
 eventlet~=0.39.0
-flask_compress
 Flask-Compress~=1.17
-psycopg2-binary
 flask_sqlalchemy
+psycopg2-binary
 gunicorn
-eventlet
 redis
 requests
-
-
-
